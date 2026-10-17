@@ -30,7 +30,14 @@ import {
   Heart, 
   Calendar, 
   Hospital,
-  AlertCircle
+  AlertCircle,
+  FileCheck,
+  FileText,
+  Sparkles,
+  Eye,
+  UploadCloud,
+  X,
+  ExternalLink
 } from 'lucide-react';
 import { translations } from './data/translations';
 
@@ -47,6 +54,7 @@ export const App: React.FC = () => {
   const [isQROpen, setIsQROpen] = useState(false);
   const [isEmergencyOpen, setIsEmergencyOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [selectedReportDetail, setSelectedReportDetail] = useState<LabReport | null>(null);
 
   // Accounts & Multi-Family Profile State
   const [accounts, setAccounts] = useState<UserAccount[]>(() => {
@@ -189,9 +197,13 @@ export const App: React.FC = () => {
         if (liveReports && liveReports.length > 0) {
           setReports((prev) => {
             const map = new Map<string, LabReport>();
-            // Add live reports from backend
+            // Keep user's existing & uploaded reports FIRST so newest uploaded reports stay at top
+            prev.forEach((r) => {
+              if (r && r.id) map.set(r.id, r);
+            });
+            // Merge in backend live reports if not already present
             liveReports.forEach((r: any) => {
-              if (r && r.id) {
+              if (r && r.id && !map.has(r.id)) {
                 map.set(r.id, {
                   id: r.id,
                   title: r.title || 'Diagnostic Report',
@@ -206,10 +218,6 @@ export const App: React.FC = () => {
                   keyValues: r.keyValues || []
                 });
               }
-            });
-            // Keep existing reports
-            prev.forEach((r) => {
-              if (!map.has(r.id)) map.set(r.id, r);
             });
             return Array.from(map.values());
           });
@@ -374,6 +382,14 @@ export const App: React.FC = () => {
 
     setReports((prev) => [reportWithId, ...prev.filter((r) => r.id !== reportWithId.id)]);
     showToast(`✅ "${newReport.title}" synced to Dashboard & Patient Records!`);
+
+    // Smoothly scroll down to the spotlight section so the user sees it immediately
+    setTimeout(() => {
+      const el = document.getElementById('latest-report-section');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 150);
 
     // 2. Dynamically Update Vitals Grid
     setVitals((prevVitals: VitalMetric[]) => {
@@ -672,6 +688,79 @@ export const App: React.FC = () => {
         showToast={showToast}
       />
 
+      {/* Report Detail Inspection Modal */}
+      {selectedReportDetail && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden relative animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/70">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center font-bold">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-heading font-bold text-slate-900">{selectedReportDetail.title}</h3>
+                  <p className="text-xs text-slate-500">{selectedReportDetail.facility} • {selectedReportDetail.date}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedReportDetail(null)}
+                className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                  <span className="text-slate-400 block text-[10px] font-bold">CATEGORY</span>
+                  <span className="font-bold text-slate-800">{selectedReportDetail.category}</span>
+                </div>
+                <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                  <span className="text-slate-400 block text-[10px] font-bold">VERIFIED BY</span>
+                  <span className="font-bold text-slate-800">{selectedReportDetail.doctor}</span>
+                </div>
+              </div>
+
+              <div className="bg-sky-50/70 p-3.5 rounded-xl border border-sky-100">
+                <span className="text-[11px] font-bold text-sky-800 uppercase block mb-1">Clinical AI Synthesis</span>
+                <p className="text-xs text-slate-700 leading-relaxed">{selectedReportDetail.summary}</p>
+              </div>
+
+              {selectedReportDetail.keyValues && selectedReportDetail.keyValues.length > 0 && (
+                <div>
+                  <span className="text-xs font-bold text-slate-800 block mb-2">All Extracted Biomarkers:</span>
+                  <div className="space-y-1.5 max-h-56 overflow-y-auto">
+                    {selectedReportDetail.keyValues.map((kv, i) => (
+                      <div key={i} className="flex items-center justify-between text-xs bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
+                        <span className="font-medium text-slate-700">{kv.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className={`font-bold font-mono ${kv.isAbnormal ? 'text-amber-600' : 'text-slate-800'}`}>
+                            {kv.value}
+                          </span>
+                          {kv.reference && (
+                            <span className="text-[10px] text-slate-400">({kv.reference})</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end pt-2">
+                <button
+                  onClick={() => setSelectedReportDetail(null)}
+                  className="px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
@@ -712,6 +801,122 @@ export const App: React.FC = () => {
               onOpenSettings={() => setIsSettingsOpen(true)}
             />
 
+            {/* Latest Uploaded Report Spotlight Showcase Card */}
+            {reports.length > 0 && (
+              <div 
+                id="latest-report-section"
+                className="bg-gradient-to-br from-white via-sky-50/40 to-blue-50/20 rounded-2xl border border-sky-200/90 shadow-card p-5 sm:p-6 space-y-4 ring-1 ring-sky-100"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-sky-500/10 text-sky-700 flex items-center justify-center font-bold shrink-0">
+                      <FileCheck className="w-5 h-5 text-sky-600" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          LATEST ACTIVE DIAGNOSTIC REPORT
+                        </span>
+                        <span className="text-xs text-slate-400 font-medium">{reports[0].date}</span>
+                      </div>
+                      <h2 className="text-base sm:text-lg font-heading font-bold text-slate-900 mt-0.5">
+                        {reports[0].title}
+                      </h2>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+                    <button
+                      onClick={() => setSelectedReportDetail(reports[0])}
+                      className="text-xs font-bold text-sky-700 hover:text-sky-800 bg-sky-100/70 hover:bg-sky-100 px-3 py-1.5 rounded-xl border border-sky-200 transition-colors flex items-center gap-1.5"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Inspect Breakdown</span>
+                    </button>
+                    <button
+                      onClick={() => setIsUploadOpen(true)}
+                      className="text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 px-3 py-1.5 rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
+                    >
+                      <UploadCloud className="w-3.5 h-3.5" />
+                      <span>Upload New Report</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Metadata Pills */}
+                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+                  <span className="bg-slate-100 px-2.5 py-1 rounded-lg font-medium">
+                    🏥 <strong>Facility:</strong> {reports[0].facility}
+                  </span>
+                  <span className="bg-slate-100 px-2.5 py-1 rounded-lg font-medium">
+                    🩺 <strong>Doctor:</strong> {reports[0].doctor}
+                  </span>
+                  <span className="bg-sky-100/80 text-sky-800 px-2.5 py-1 rounded-lg font-bold">
+                    {reports[0].category}
+                  </span>
+                  <span className={`px-2.5 py-1 rounded-lg font-bold text-xs ${
+                    reports[0].status === 'Verified' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                  }`}>
+                    {reports[0].status}
+                  </span>
+                </div>
+
+                {/* AI Clinical Synthesis Callout */}
+                <div className="bg-white/90 rounded-xl p-3.5 border border-sky-100 shadow-2xs">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-sky-900 mb-1">
+                    <Sparkles className="w-4 h-4 text-sky-600" />
+                    <span>Gemini Vision AI Clinical Synthesis:</span>
+                  </div>
+                  <p className="text-xs text-slate-700 leading-relaxed">
+                    {reports[0].summary}
+                  </p>
+                </div>
+
+                {/* Structured Biomarkers Extracted */}
+                {reports[0].keyValues && reports[0].keyValues.length > 0 && (
+                  <div>
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-2">
+                      <span>Extracted Biomarkers & Key Clinical Metrics:</span>
+                      <span className="text-[11px] text-slate-400 font-normal">
+                        {reports[0].keyValues.filter(k => k.isAbnormal).length > 0 ? (
+                          <span className="text-amber-600 font-bold">
+                            ⚠️ {reports[0].keyValues.filter(k => k.isAbnormal).length} flagged abnormal
+                          </span>
+                        ) : (
+                          <span className="text-emerald-600 font-bold">✓ All within normal range</span>
+                        )}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                      {reports[0].keyValues.map((kv, i) => (
+                        <div 
+                          key={i}
+                          className={`p-2.5 rounded-xl border text-xs flex flex-col justify-between transition-all ${
+                            kv.isAbnormal
+                              ? 'bg-amber-50/80 border-amber-200 text-amber-900'
+                              : 'bg-white border-slate-200/90 text-slate-800'
+                          }`}
+                        >
+                          <span className="text-[11px] font-medium text-slate-500 line-clamp-1">{kv.name}</span>
+                          <div className="mt-1 flex items-baseline justify-between gap-1">
+                            <span className={`text-sm font-bold font-mono ${kv.isAbnormal ? 'text-amber-700' : 'text-slate-900'}`}>
+                              {kv.value}
+                            </span>
+                            {kv.reference && (
+                              <span className="text-[10px] text-slate-400 truncate max-w-[80px]">
+                                ref: {kv.reference}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Current Vitals Grid (Synchronized with AI-analyzed reports) */}
             <VitalsGrid vitals={vitals} language={language} />
 
@@ -750,10 +955,11 @@ export const App: React.FC = () => {
                 {reports.slice(0, 6).map((r, idx) => (
                   <div
                     key={r.id || `rep-${idx}`}
-                    className={`p-4 rounded-xl border transition-all shadow-2xs ${
+                    onClick={() => setSelectedReportDetail(r)}
+                    className={`p-4 rounded-xl border transition-all shadow-2xs cursor-pointer ${
                       idx === 0
-                        ? 'border-emerald-300 bg-emerald-50/40 ring-2 ring-emerald-100 hover:border-emerald-400'
-                        : 'border-slate-200 bg-slate-50/60 hover:bg-white hover:border-sky-300'
+                        ? 'border-emerald-300 bg-emerald-50/40 ring-2 ring-emerald-100 hover:border-emerald-400 hover:shadow-md'
+                        : 'border-slate-200 bg-slate-50/60 hover:bg-white hover:border-sky-300 hover:shadow-md'
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -769,7 +975,10 @@ export const App: React.FC = () => {
                       </div>
                       <span className="text-xs text-slate-400 font-medium">{r.date}</span>
                     </div>
-                    <h3 className="font-heading font-bold text-slate-900 text-sm mt-1.5">{r.title}</h3>
+                    <div className="flex items-start justify-between gap-2 mt-1.5">
+                      <h3 className="font-heading font-bold text-slate-900 text-sm">{r.title}</h3>
+                      <span className="text-[10px] font-bold text-sky-600 hover:underline shrink-0">Details →</span>
+                    </div>
                     <p className="text-xs text-slate-500 mt-1 line-clamp-2">{r.summary}</p>
                     
                     {/* Compact Biomarker Chips */}

@@ -273,9 +273,9 @@ class SupabaseService:
             except Exception as e:
                 logger.error(f"Supabase get_patient_reports error: {e}")
 
-        # Return clean reports without raw binary fileBytes to ensure clean JSON serialization
+        # Return clean reports without raw binary fileBytes in reverse chronological order (newest first)
         results = []
-        for r in self.reports.values():
+        for r in reversed(list(self.reports.values())):
             if r.get("patientId") == patient_id or patient_id == self.patient_id:
                 clean_r = {k: v for k, v in r.items() if k != "fileBytes"}
                 results.append(clean_r)
