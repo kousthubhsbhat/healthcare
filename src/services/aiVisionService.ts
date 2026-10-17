@@ -1,7 +1,18 @@
 import { LabReport, LanguageCode } from '../types/health';
 
-const GEMINI_API_KEY = (import.meta as any).env?.VITE_GEMINI_API_KEY || '';
-const GEMINI_MODEL = 'gemini-3.8-flash';
+export function getGeminiApiKey(): string {
+  try {
+    const userKey = localStorage.getItem('pulsehealth_gemini_api_key');
+    if (userKey && userKey.trim().startsWith('AIza')) return userKey.trim();
+  } catch {}
+
+  const envKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || '';
+  if (envKey && envKey.trim().startsWith('AIza')) return envKey.trim();
+
+  return '';
+}
+
+const GEMINI_MODEL = 'gemini-2.5-flash';
 
 interface GeminiBiomarker {
   name: string;
@@ -80,6 +91,11 @@ export async function analyzeReportDirectlyWithGemini(
   file: File,
   language: LanguageCode = 'en'
 ): Promise<LabReport> {
+  const apiKey = getGeminiApiKey();
+  if (!apiKey) {
+    throw new Error('NO_VALID_GEMINI_KEY');
+  }
+
   const base64Data = await fileToBase64(file);
   
   // Determine MIME type
@@ -134,7 +150,7 @@ You MUST return ONLY a valid JSON object matching this schema:
     },
   };
 
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
 
   const response = await fetch(endpoint, {
     method: 'POST',

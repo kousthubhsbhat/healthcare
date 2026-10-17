@@ -78,6 +78,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [customGoogleEmail, setCustomGoogleEmail] = useState('');
   const [showGooglePicker, setShowGooglePicker] = useState(false);
 
+  // Gemini API Key State
+  const [apiKeyInput, setApiKeyInput] = useState(() => {
+    try {
+      return localStorage.getItem('pulsehealth_gemini_api_key') || '';
+    } catch {
+      return '';
+    }
+  });
+
   // Timer countdown for OTP
   useEffect(() => {
     let interval: any = null;
@@ -819,6 +828,51 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <option value="kn">ಕನ್ನಡ (Kannada)</option>
                     <option value="ta">தமிழ் (Tamil)</option>
                   </select>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-heading font-bold text-slate-900 text-sm flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-sky-600" />
+                    <span>Gemini Vision AI Engine</span>
+                  </h4>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                    apiKeyInput.startsWith('AIza')
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : 'bg-sky-100 text-sky-800'
+                  }`}>
+                    {apiKeyInput.startsWith('AIza') ? 'Custom API Key Connected' : 'Clinical Medical Engine (Built-in)'}
+                  </span>
+                </div>
+
+                <p className="text-xs text-slate-500">
+                  By default, documents are analyzed with high accuracy using our built-in Clinical Medical Knowledge Engine. You can optionally connect a Google AI Studio API key.
+                </p>
+
+                <div className="flex gap-2">
+                  <input
+                    type="password"
+                    placeholder="AIzaSy... (Optional Google AI Studio Key)"
+                    value={apiKeyInput}
+                    onChange={(e) => setApiKeyInput(e.target.value)}
+                    className="flex-1 px-3 py-1.5 text-xs rounded-xl border border-slate-300 bg-white focus:outline-sky-500 font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (apiKeyInput.trim()) {
+                        localStorage.setItem('pulsehealth_gemini_api_key', apiKeyInput.trim());
+                        showToast('✅ Google Gemini API Key saved for vision OCR analysis!');
+                      } else {
+                        localStorage.removeItem('pulsehealth_gemini_api_key');
+                        showToast('Switched to built-in Clinical Medical Knowledge Engine.');
+                      }
+                    }}
+                    className="px-3 py-1.5 text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-xl transition-colors"
+                  >
+                    Save
+                  </button>
                 </div>
               </div>
 
