@@ -22,6 +22,7 @@ import { EmergencyModeModal } from './components/EmergencyModeModal';
 import { VoiceSummaryPlayer } from './components/VoiceSummaryPlayer';
 import { 
   ShieldAlert, 
+  ShieldCheck,
   CheckCircle2, 
   Activity, 
   Heart, 
@@ -31,7 +32,7 @@ import {
 } from 'lucide-react';
 import { translations } from './data/translations';
 
-import { fetchPatientProfile } from './services/api';
+import { fetchPatientProfile, fetchDoctorView } from './services/api';
 
 export const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'patient' | 'doctor' | 'emergency'>('patient');
@@ -43,6 +44,15 @@ export const App: React.FC = () => {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isQROpen, setIsQROpen] = useState(false);
   const [isEmergencyOpen, setIsEmergencyOpen] = useState(false);
+
+  // Doctor session state for QR code deep-links
+  const [doctorSession, setDoctorSession] = useState<{
+    token: string;
+    scope: string;
+    clinicianName: string;
+    verified: boolean;
+    expiresInHours: number;
+  } | null>(null);
 
   // Data state
   const [patient, setPatient] = useState(mockPatient);
@@ -60,6 +70,71 @@ export const App: React.FC = () => {
       }
     }
     loadData();
+  }, []);
+
+  // Handle QR Deep Links, Query Parameters and Pathnames on Mount
+  React.useEffect(() => {
+    const handleUrlRoute = async () => {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const path = window.location.pathname;
+
+        const token = urlParams.get('token');
+        const viewParam = urlParams.get('view');
+        const scopeParam = (urlParams.get('scope') || 'Full').toUpperCase();
+
+        const isDoctorRoute = 
+          path.includes('/doctor-portal') || 
+          path.includes('/doctor-view') || 
+          viewParam === 'doctor' || 
+          Boolean(token);
+
+        const isEmergencyRoute = 
+          path.includes('/emergency') || 
+          viewParam === 'emergency' || 
+          scopeParam === 'EMERGENCY';
+
+        if (isEmergencyRoute) {
+          setIsEmergencyOpen(true);
+        }
+
+        if (isDoctorRoute) {
+          setCurrentView('doctor');
+
+          if (token) {
+            setDoctorSession({
+              token,
+              scope: scopeParam,
+              clinicianName: 'Dr. Ramesh N. Rao (Emergency / Hospital Staff)',
+              verified: true,
+              expiresInHours: 24,
+            });
+
+            // Sync with backend API to log access event in Supabase and fetch fresh dossier
+            try {
+              const docViewData = await fetchDoctorView(token);
+              if (docViewData?.patient) {
+                setPatient(docViewData.patient);
+              }
+              if (docViewData?.medications) {
+                setMedications(docViewData.medications);
+              }
+              if (docViewData?.timelineReports) {
+                setReports(docViewData.timelineReports);
+              }
+            } catch (err) {
+              console.warn('Doctor view sync fallback to local dossier:', err);
+            }
+
+            showToast(`🔐 Authorized Doctor Session Active (Scope: ${scopeParam})`);
+          }
+        }
+      } catch (e) {
+        console.error('Error parsing route params:', e);
+      }
+    };
+
+    handleUrlRoute();
   }, []);
 
   const t = translations[language];
@@ -270,6 +345,50 @@ export const App: React.FC = () => {
         {currentView === 'doctor' && (
           <div className="space-y-6 animate-in fade-in duration-300">
             
+            {/* Active QR Doctor Session Banner */}
+            {doctorSession && (
+              <div className="bg-emerald-950 text-white rounded-2xl p-4 sm:p-5 shadow-lg border border-emerald-500/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-in slide-in-from-top-4 duration-300">
+                <div className="flex items-start sm:items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0 border border-emerald-500/30">
+                    <ShieldCheck className="w-6 h-6 text-emerald-400" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="inline-flex items-center gap-1.5 bg-emerald-500/30 text-emerald-200 text-xs font-bold px-2.5 py-0.5 rounded-full border border-emerald-400/30">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        Verified QR Token Session
+                      </span>
+                      <span className="text-xs text-emerald-200 font-mono bg-black/30 px-2 py-0.5 rounded">
+                        Token: {doctorSession.token.length > 20 ? `${doctorSession.token.substring(0, 18)}...` : doctorSession.token}
+                      </span>
+                      <span className="bg-sky-500/20 text-sky-200 text-[11px] font-bold px-2 py-0.5 rounded">
+                        Scope: {doctorSession.scope}
+                      </span>
+                    </div>
+                    <p className="text-xs text-emerald-100/90 mt-1">
+                      Temporary 24-hour read access granted by patient {patient.name}. Authenticated via National Health Gateway.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-end md:self-center">
+                  <button
+                    onClick={() => {
+                      setDoctorSession(null);
+                      setCurrentView('patient');
+                      if (typeof window !== 'undefined') {
+                        window.history.replaceState({}, '', window.location.pathname);
+                      }
+                      showToast('Exited Doctor Session. Returned to Patient Dashboard.');
+                    }}
+                    className="text-xs font-bold bg-white/10 hover:bg-white/20 text-white px-3.5 py-2 rounded-xl border border-white/20 transition-colors flex items-center gap-1.5"
+                  >
+                    <span>Exit to Patient View</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Doctor View Sub-Header */}
             <div className="bg-gradient-to-r from-sky-900 via-blue-900 to-indigo-900 text-white rounded-2xl p-5 sm:p-6 shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>

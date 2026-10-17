@@ -11,13 +11,17 @@ import {
   Users, 
   Share2, 
   AlertOctagon,
-  Eye
+  Eye,
+  ExternalLink,
+  Smartphone
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { AccessLog, LanguageCode } from '../types/health';
 import { translations } from '../data/translations';
 
 import { generateQRToken, fetchAccessLogs } from '../services/api';
+
+const PROD_URL = 'https://healthcare-kousthubhsbhat-2077.vercel.app';
 
 interface QRCodeModalProps {
   isOpen: boolean;
@@ -38,14 +42,34 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
 }) => {
   const t = translations[language];
 
+  // Detect if running on localhost or on cloud
+  const isLocalhost = typeof window !== 'undefined' && 
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+  // Mode for QR URL: On localhost, default to 'cloud' so phone cameras can scan without ERR_CONNECTION_REFUSED
+  const [targetMode, setTargetMode] = useState<'cloud' | 'local'>(isLocalhost ? 'cloud' : 'local');
+
   // 24-hour countdown state (starts at 24 hours)
   const [secondsRemaining, setSecondsRemaining] = useState(24 * 3600);
   const [sessionToken, setSessionToken] = useState('926528f7-25a0-42c1-9a79-73dc3e7966bd');
-  const [shareUrl, setShareUrl] = useState(`http://localhost:5173/doctor-portal?token=926528f7-25a0-42c1-9a79-73dc3e7966bd`);
   const [isCopied, setIsCopied] = useState(false);
   const [accessScope, setAccessScope] = useState<'Full' | 'Emergency' | 'Labs'>('Full');
   const [isRevoked, setIsRevoked] = useState(false);
   const [liveLogs, setLiveLogs] = useState<AccessLog[]>(initialLogs);
+
+  // Compute effective base URL
+  const computeBaseUrl = (mode: 'cloud' | 'local') => {
+    if (mode === 'cloud') {
+      return PROD_URL;
+    }
+    if (typeof window !== 'undefined' && window.location.origin) {
+      return window.location.origin;
+    }
+    return PROD_URL;
+  };
+
+  const currentBaseUrl = computeBaseUrl(targetMode);
+  const shareUrl = `${currentBaseUrl}/?view=doctor&token=${sessionToken}&scope=${accessScope.toLowerCase()}`;
 
   // Generate real UUID token from backend on mount or scope change
   useEffect(() => {
@@ -55,7 +79,6 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
       try {
         const tokenRes = await generateQRToken(patientId, accessScope);
         setSessionToken(tokenRes.token);
-        setShareUrl(tokenRes.shareUrl || `http://localhost:5173/doctor-portal?token=${tokenRes.token}`);
         
         const expTime = new Date(tokenRes.expiresAt).getTime();
         const nowTime = new Date().getTime();
@@ -97,17 +120,19 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
     setTimeout(() => setIsCopied(false), 2500);
   };
 
+  const handleOpenPortal = () => {
+    window.open(shareUrl, '_blank', 'noopener,noreferrer');
+  };
+
   const handleRegenerate = async () => {
     setIsRevoked(false);
     try {
       const tokenRes = await generateQRToken(patientId, accessScope);
       setSessionToken(tokenRes.token);
-      setShareUrl(tokenRes.shareUrl || `http://localhost:5173/doctor-portal?token=${tokenRes.token}`);
       setSecondsRemaining(24 * 3600);
     } catch (err) {
       const fallbackToken = `MED-SEC-${Math.floor(1000 + Math.random() * 9000)}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
       setSessionToken(fallbackToken);
-      setShareUrl(`http://localhost:5173/doctor-portal?token=${fallbackToken}`);
       setSecondsRemaining(24 * 3600);
     }
   };
@@ -150,10 +175,10 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
             
             {/* Left Box: QR Card */}
-            <div className="flex flex-col items-center justify-center p-6 bg-gradient-to-b from-slate-50 to-white rounded-2xl border-2 border-slate-200/90 shadow-card relative">
+            <div className="flex flex-col items-center justify-center p-5 sm:p-6 bg-gradient-to-b from-slate-50 to-white rounded-2xl border-2 border-slate-200/90 shadow-card relative">
               
               {isRevoked ? (
-                <div className="h-56 flex flex-col items-center justify-center text-center p-4">
+                <div className="h-60 flex flex-col items-center justify-center text-center p-4">
                   <AlertOctagon className="w-16 h-16 text-red-500 mb-2 animate-bounce" />
                   <h4 className="font-heading font-bold text-red-600 text-base">Access Revoked</h4>
                   <p className="text-xs text-slate-500 mt-1 max-w-xs">
@@ -169,43 +194,85 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
                 </div>
               ) : (
                 <>
-                  {/* Clean QR code frame */}
-                  <div className="bg-white p-4 rounded-2xl shadow-md border border-slate-200">
+                  {/* Clean QR code frame with quiet zone */}
+                  <div className="bg-white p-3 rounded-2xl shadow-md border-2 border-slate-200 flex items-center justify-center">
                     <QRCodeSVG
                       value={shareUrl}
-                      size={180}
+                      size={190}
                       level="H"
-                      includeMargin={false}
+                      includeMargin={true}
                       className="rounded-lg"
                     />
                   </div>
 
-                  <div className="text-center mt-3">
+                  {/* Mode Selector for Local Testing vs Phone Camera */}
+                  {isLocalhost && (
+                    <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200 mt-3 text-[11px] w-full justify-center">
+                      <button
+                        type="button"
+                        onClick={() => setTargetMode('cloud')}
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold transition-all ${
+                          targetMode === 'cloud'
+                            ? 'bg-sky-600 text-white shadow-xs'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                        title="Scan with any physical phone camera (loads live Vercel deployment)"
+                      >
+                        <Smartphone className="w-3 h-3" />
+                        <span>Phone Scan (Cloud)</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setTargetMode('local')}
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold transition-all ${
+                          targetMode === 'local'
+                            ? 'bg-sky-600 text-white shadow-xs'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                        title="Use localhost for desktop browser testing"
+                      >
+                        <span>Localhost</span>
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="text-center mt-2.5">
                     <p className="text-xs font-bold text-slate-800 flex items-center justify-center gap-1">
                       <Lock className="w-3.5 h-3.5 text-emerald-600" />
                       <span>End-to-End Encrypted Session</span>
                     </p>
-                    <p className="text-[11px] font-mono text-slate-500 mt-0.5">
-                      Session Token: {sessionToken}
+                    <p className="text-[11px] font-mono text-slate-500 mt-0.5 truncate max-w-[240px]">
+                      Token: {sessionToken}
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2 mt-3 w-full">
+                  {/* Action Buttons: Open Portal + Copy Link + Refresh */}
+                  <div className="flex flex-col gap-2 mt-3 w-full">
                     <button
-                      onClick={handleCopyLink}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200 transition-colors"
+                      onClick={handleOpenPortal}
+                      className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-all"
                     >
-                      {isCopied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                      <span>{isCopied ? 'Link Copied!' : 'Copy Portal URL'}</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>Open Doctor Portal Directly ↗</span>
                     </button>
 
-                    <button
-                      onClick={handleRegenerate}
-                      title="Generate new token"
-                      className="p-2 rounded-xl text-slate-600 hover:text-sky-600 border border-slate-200 hover:bg-slate-50 transition-colors"
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-2 w-full">
+                      <button
+                        onClick={handleCopyLink}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200 transition-colors"
+                      >
+                        {isCopied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                        <span>{isCopied ? 'Link Copied!' : 'Copy Portal URL'}</span>
+                      </button>
+
+                      <button
+                        onClick={handleRegenerate}
+                        title="Generate new token"
+                        className="p-2 rounded-xl text-slate-600 hover:text-sky-600 border border-slate-200 hover:bg-slate-50 transition-colors shrink-0"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </>
               )}

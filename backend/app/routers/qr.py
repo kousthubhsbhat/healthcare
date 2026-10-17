@@ -13,11 +13,17 @@ async def generate_qr_token(request_body: QRGenerateRequest, request: Request):
     Stores the token in the access_tokens table.
     """
     client_ip = request.client.host if request.client else "127.0.0.1"
+    origin = request.headers.get("origin") or request.headers.get("referer")
+    if origin and "://" in origin:
+        # Extract protocol + host only if referer has paths
+        parts = origin.split("/")
+        origin = f"{parts[0]}//{parts[2]}"
 
     token_data = await QRService.generate_token(
         patient_id=request_body.patientId,
         scope=request_body.scope.value,
-        client_ip=client_ip
+        client_ip=client_ip,
+        origin=origin
     )
 
     return QRGenerateResponse(
