@@ -82,6 +82,32 @@ async def health_check():
         "visionApiReady": True
     }
 
+# Network Info Endpoint for Cross-Device Wi-Fi QR Access
+@app.get("/api/network-info", tags=["Network"])
+async def get_network_info():
+    """
+    Returns the host machine's local Wi-Fi / LAN IP so any phone or tablet
+    on the same network can open the running local instance directly.
+    """
+    import socket
+    local_ip = "127.0.0.1"
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+    except Exception:
+        try:
+            local_ip = socket.gethostbyname(socket.gethostname())
+        except Exception:
+            local_ip = "10.213.248.10"
+    
+    return {
+        "localIp": local_ip,
+        "port": 5173,
+        "wifiUrl": f"http://{local_ip}:5173"
+    }
+
 # Include Core Medical Routers under /api
 app.include_router(patients.router, prefix=settings.API_V1_STR)
 app.include_router(reports.router, prefix=settings.API_V1_STR)

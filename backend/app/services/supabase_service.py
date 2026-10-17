@@ -273,7 +273,13 @@ class SupabaseService:
             except Exception as e:
                 logger.error(f"Supabase get_patient_reports error: {e}")
 
-        return [r for r in self.reports.values() if r.get("patientId") == patient_id or patient_id == self.patient_id]
+        # Return clean reports without raw binary fileBytes to ensure clean JSON serialization
+        results = []
+        for r in self.reports.values():
+            if r.get("patientId") == patient_id or patient_id == self.patient_id:
+                clean_r = {k: v for k, v in r.items() if k != "fileBytes"}
+                results.append(clean_r)
+        return results
 
     # --- Active Medications Methods ---
     async def get_medications(self, patient_id: str) -> List[Dict[str, Any]]:

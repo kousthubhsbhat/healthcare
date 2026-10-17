@@ -122,3 +122,17 @@ export async function fetchAccessLogs(patientId = 'pt-99421-bangalore'): Promise
     return [];
   }
 }
+
+/**
+ * Fetches local LAN/Wi-Fi network IP from backend so devices on same network can connect
+ */
+export async function fetchNetworkInfo(): Promise<{ localIp: string; wifiUrl: string } | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/network-info`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
