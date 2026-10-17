@@ -1,5 +1,5 @@
 import React from 'react';
-import { UploadCloud, QrCode, ShieldAlert, LineChart, FileText } from 'lucide-react';
+import { UploadCloud, QrCode, ShieldAlert, LineChart, FileText, Settings, Users } from 'lucide-react';
 import { LanguageCode } from '../types/health';
 import { translations } from '../data/translations';
 
@@ -9,6 +9,7 @@ interface QuickActionsProps {
   onOpenQR: () => void;
   onOpenEmergency: () => void;
   onOpenDoctorView: () => void;
+  onOpenSettings?: () => void;
 }
 
 export const QuickActions: React.FC<QuickActionsProps> = ({
@@ -17,6 +18,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
   onOpenQR,
   onOpenEmergency,
   onOpenDoctorView,
+  onOpenSettings,
 }) => {
   const t = translations[language];
 
@@ -30,7 +32,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
         <span className="text-[11px] text-slate-500 font-medium">Instant Clinical Workflows</span>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {/* Upload Report Button */}
         <button
           onClick={onOpenUpload}
@@ -95,6 +97,24 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
             Zero-Login SOS
           </span>
         </button>
+
+        {/* Account & Settings Button */}
+        {onOpenSettings && (
+          <button
+            onClick={onOpenSettings}
+            className="col-span-2 sm:col-span-1 flex flex-col items-center justify-center p-4 rounded-xl border border-purple-100 bg-gradient-to-b from-purple-50/80 to-white hover:from-purple-100 hover:to-purple-50 text-slate-800 hover:text-purple-900 shadow-xs hover:shadow-card transition-all group"
+          >
+            <div className="w-11 h-11 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-md shadow-purple-500/20 group-hover:scale-110 transition-transform">
+              <Users className="w-6 h-6" />
+            </div>
+            <span className="font-heading font-bold text-xs sm:text-sm mt-2.5 text-center text-slate-800 group-hover:text-purple-700">
+              Accounts & Settings
+            </span>
+            <span className="text-[10px] text-slate-500 text-center mt-0.5">
+              Switch • OTP • Google
+            </span>
+          </button>
+        )}
       </div>
     </div>
   );

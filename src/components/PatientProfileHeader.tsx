@@ -15,12 +15,14 @@ interface PatientProfileHeaderProps {
   patient: PatientProfile;
   language: LanguageCode;
   onOpenEmergency: () => void;
+  onOpenSettings?: () => void;
 }
 
 export const PatientProfileHeader: React.FC<PatientProfileHeaderProps> = ({
   patient,
   language,
   onOpenEmergency,
+  onOpenSettings,
 }) => {
   const t = translations[language];
   const [copiedId, setCopiedId] = useState(false);
@@ -71,6 +73,17 @@ export const PatientProfileHeader: React.FC<PatientProfileHeaderProps> = ({
                   <HeartHandshake className="w-3 h-3 text-emerald-600" />
                   Organ Donor
                 </span>
+              )}
+              {onOpenSettings && (
+                <button
+                  type="button"
+                  onClick={onOpenSettings}
+                  className="text-xs font-bold text-sky-700 bg-sky-50 hover:bg-sky-100 border border-sky-200 hover:border-sky-300 px-2.5 py-0.5 rounded-full transition-all flex items-center gap-1 shadow-2xs group"
+                  title="Switch family member or account settings"
+                >
+                  <span>Switch Profile</span>
+                  <span className="text-[10px] text-sky-500 group-hover:translate-x-0.5 transition-transform">▾</span>
+                </button>
               )}
             </div>
 

@@ -118,3 +118,23 @@ export interface PatientProfile {
     validThru: string;
   };
 }
+
+export interface UserAccount {
+  id: string;
+  name: string;
+  relationship: 'Self' | 'Spouse' | 'Child' | 'Parent' | 'Other';
+  abhaId: string;
+  phone: string;
+  email: string;
+  bloodGroup: BloodGroup;
+  gender: 'Male' | 'Female' | 'Other';
+  age: number;
+  googleConnected?: boolean;
+  googleEmail?: string;
+  phoneVerified?: boolean;
+  patientData: PatientProfile;
+  vitals?: VitalMetric[];
+  medications?: Medication[];
+  reports?: LabReport[];
+  trends?: HealthTrendPoint[];
+}

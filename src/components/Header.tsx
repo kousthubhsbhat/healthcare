@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, ShieldAlert, Stethoscope, User, Volume2, VolumeX, Globe } from 'lucide-react';
+import { Activity, ShieldAlert, Stethoscope, User, Volume2, VolumeX, Globe, Settings } from 'lucide-react';
 import { LanguageCode } from '../types/health';
 import { translations } from '../data/translations';
 
@@ -12,6 +12,7 @@ interface HeaderProps {
   onToggleSpeech: () => void;
   patientName: string;
   bloodGroup: string;
+  onOpenSettings: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -23,6 +24,7 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleSpeech,
   patientName,
   bloodGroup,
+  onOpenSettings,
 }) => {
   const t = translations[language];
 
@@ -152,16 +154,30 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
-            {/* Patient Badge Quick Info */}
-            <div className="hidden xl:flex items-center gap-2 pl-2 border-l border-slate-200">
-              <div className="w-8 h-8 rounded-full bg-sky-100 text-sky-800 flex items-center justify-center font-bold text-xs ring-2 ring-sky-300">
+            {/* Settings & Account Management Button */}
+            <button
+              onClick={onOpenSettings}
+              title="Account Settings & Family Profiles"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-2xs"
+            >
+              <Settings className="w-4 h-4 text-slate-600" />
+              <span className="hidden md:inline">Settings</span>
+            </button>
+
+            {/* Patient Badge Quick Info & Switcher */}
+            <button
+              onClick={onOpenSettings}
+              title="Click to switch active family account"
+              className="hidden xl:flex items-center gap-2 pl-2 border-l border-slate-200 text-left hover:opacity-85 transition-opacity cursor-pointer group"
+            >
+              <div className="w-8 h-8 rounded-full bg-sky-100 text-sky-800 flex items-center justify-center font-bold text-xs ring-2 ring-sky-300 group-hover:scale-105 transition-transform">
                 {bloodGroup}
               </div>
               <div className="text-left text-xs leading-tight">
-                <p className="font-semibold text-slate-800 truncate max-w-[110px]">{patientName}</p>
-                <p className="text-[10px] text-emerald-600 font-medium">● Connected</p>
+                <p className="font-semibold text-slate-800 truncate max-w-[110px] group-hover:text-sky-600 transition-colors">{patientName}</p>
+                <p className="text-[10px] text-emerald-600 font-medium">● Switch Profile</p>
               </div>
-            </div>
+            </button>
 
           </div>
 

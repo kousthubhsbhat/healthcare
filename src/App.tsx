@@ -5,9 +5,10 @@ import {
   mockVitals, 
   mockLabReports, 
   mockAccessLogs, 
-  mockHealthTrends 
+  mockHealthTrends,
+  mockAccounts 
 } from './data/mockData';
-import { LanguageCode, LabReport, Medication, HealthTrendPoint, VitalMetric, PatientProfile } from './types/health';
+import { LanguageCode, LabReport, Medication, HealthTrendPoint, VitalMetric, PatientProfile, UserAccount } from './types/health';
 import { Header } from './components/Header';
 import { PatientProfileHeader } from './components/PatientProfileHeader';
 import { VitalsGrid } from './components/VitalsGrid';
@@ -20,6 +21,7 @@ import { HealthTrendsChart } from './components/HealthTrendsChart';
 import { DrugAllergyAlert } from './components/DrugAllergyAlert';
 import { EmergencyModeModal } from './components/EmergencyModeModal';
 import { VoiceSummaryPlayer } from './components/VoiceSummaryPlayer';
+import { SettingsModal } from './components/SettingsModal';
 import { 
   ShieldAlert, 
   ShieldCheck,
@@ -44,6 +46,25 @@ export const App: React.FC = () => {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isQROpen, setIsQROpen] = useState(false);
   const [isEmergencyOpen, setIsEmergencyOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // Accounts & Multi-Family Profile State
+  const [accounts, setAccounts] = useState<UserAccount[]>(() => {
+    try {
+      const saved = localStorage.getItem('pulsehealth_accounts');
+      return saved ? JSON.parse(saved) : mockAccounts;
+    } catch {
+      return mockAccounts;
+    }
+  });
+
+  const [activeAccountId, setActiveAccountId] = useState<string>(() => {
+    try {
+      return localStorage.getItem('pulsehealth_active_account_id') || 'acc-1';
+    } catch {
+      return 'acc-1';
+    }
+  });
 
   // Doctor session state for QR code deep-links
   const [doctorSession, setDoctorSession] = useState<{
@@ -138,6 +159,22 @@ export const App: React.FC = () => {
       console.warn('LocalStorage error:', e);
     }
   }, [healthTrends]);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('pulsehealth_accounts', JSON.stringify(accounts));
+    } catch (e) {
+      console.warn('LocalStorage error:', e);
+    }
+  }, [accounts]);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('pulsehealth_active_account_id', activeAccountId);
+    } catch (e) {
+      console.warn('LocalStorage error:', e);
+    }
+  }, [activeAccountId]);
 
   // Sync with backend API on mount
   React.useEffect(() => {
@@ -297,6 +334,35 @@ export const App: React.FC = () => {
     };
     setMedications([newMed, ...medications]);
     showToast(`Added new prescription: ${newMed.name}`);
+  };
+
+  const handleSwitchAccount = (account: UserAccount) => {
+    setActiveAccountId(account.id);
+    setPatient(account.patientData);
+    if (account.vitals && account.vitals.length > 0) {
+      setVitals(account.vitals);
+    }
+    if (account.medications) {
+      setMedications(account.medications);
+    }
+    if (account.reports) {
+      setReports(account.reports);
+    }
+    if (account.trends && account.trends.length > 0) {
+      setHealthTrends(account.trends);
+    }
+    showToast(`Switched active profile to ${account.name} (${account.relationship})`);
+  };
+
+  const handleAddAccount = (newAccount: UserAccount) => {
+    setAccounts((prev) => [newAccount, ...prev.filter((a) => a.id !== newAccount.id)]);
+  };
+
+  const handleUpdateAccount = (updatedAccount: UserAccount) => {
+    setAccounts((prev) => prev.map((a) => (a.id === updatedAccount.id ? updatedAccount : a)));
+    if (updatedAccount.id === activeAccountId) {
+      setPatient(updatedAccount.patientData);
+    }
   };
 
   const handleReportAdded = (newReport: LabReport) => {
@@ -560,6 +626,7 @@ export const App: React.FC = () => {
         onToggleSpeech={handleToggleSpeech}
         patientName={patient.name}
         bloodGroup={patient.bloodGroup}
+        onOpenSettings={() => setIsSettingsOpen(true)}
       />
 
       {/* Emergency Mode Modal (Zero-login high-contrast screen) */}
@@ -591,6 +658,20 @@ export const App: React.FC = () => {
         patientName={patient.name}
       />
 
+      {/* Account Settings & Multi-Profile Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        language={language}
+        onLanguageChange={setLanguage}
+        accounts={accounts}
+        activeAccountId={activeAccountId}
+        onSwitchAccount={handleSwitchAccount}
+        onAddAccount={handleAddAccount}
+        onUpdateAccount={handleUpdateAccount}
+        showToast={showToast}
+      />
+
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
@@ -618,15 +699,17 @@ export const App: React.FC = () => {
               patient={patient}
               language={language}
               onOpenEmergency={() => setIsEmergencyOpen(true)}
+              onOpenSettings={() => setIsSettingsOpen(true)}
             />
 
-            {/* Quick Actions (Upload, QR, Emergency, Trends) */}
+            {/* Quick Actions (Upload, QR, Emergency, Trends, Settings) */}
             <QuickActions
               language={language}
               onOpenUpload={() => setIsUploadOpen(true)}
               onOpenQR={() => setIsQROpen(true)}
               onOpenEmergency={() => setIsEmergencyOpen(true)}
               onOpenDoctorView={() => setCurrentView('doctor')}
+              onOpenSettings={() => setIsSettingsOpen(true)}
             />
 
             {/* Current Vitals Grid (Synchronized with AI-analyzed reports) */}

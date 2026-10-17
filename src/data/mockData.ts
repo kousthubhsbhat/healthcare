@@ -1,4 +1,4 @@
-import { PatientProfile, Medication, VitalMetric, LabReport, AccessLog, HealthTrendPoint } from '../types/health';
+import { PatientProfile, Medication, VitalMetric, LabReport, AccessLog, HealthTrendPoint, UserAccount } from '../types/health';
 
 export const mockPatient: PatientProfile = {
   id: 'PT-99421',
@@ -374,5 +374,224 @@ export const mockAccessLogs: AccessLog[] = [
     accessType: 'Full Medical Record',
     ipLocation: 'Manipal Hospital Intranet',
     status: 'Authorized',
+  }
+];
+
+export const mockAccounts: UserAccount[] = [
+  {
+    id: 'acc-1',
+    name: 'Rajesh V. Kumar',
+    relationship: 'Self',
+    abhaId: '91-4820-1942-8821',
+    phone: '+91 98450 28192',
+    email: 'rajesh.kumar@healthconnect.in',
+    bloodGroup: 'B+',
+    gender: 'Male',
+    age: 44,
+    googleConnected: true,
+    googleEmail: 'rajesh.kumar@gmail.com',
+    phoneVerified: true,
+    patientData: mockPatient,
+    vitals: mockVitals,
+    medications: mockMedications,
+    reports: mockLabReports,
+    trends: mockHealthTrends
+  },
+  {
+    id: 'acc-2',
+    name: 'Sunita R. Kumar',
+    relationship: 'Spouse',
+    abhaId: '91-8842-9912-3301',
+    phone: '+91 98451 90812',
+    email: 'sunita.kumar84@gmail.com',
+    bloodGroup: 'O+',
+    gender: 'Female',
+    age: 41,
+    googleConnected: true,
+    googleEmail: 'sunita.kumar84@gmail.com',
+    phoneVerified: true,
+    patientData: {
+      ...mockPatient,
+      id: 'PT-88412',
+      name: 'Sunita R. Kumar',
+      age: 41,
+      gender: 'Female',
+      dob: '22 Aug 1985',
+      bloodGroup: 'O+',
+      healthId: '91-8842-9912-3301',
+      phone: '+91 98451 90812',
+      email: 'sunita.kumar84@gmail.com',
+      chronicConditions: ['Subclinical Hypothyroidism', 'Vitamin D Deficiency', 'Mild Cervical Spondylosis'],
+      allergies: [
+        {
+          id: 'alg-sunita-1',
+          substance: 'Ciprofloxacin (Fluoroquinolones)',
+          severity: 'Severe',
+          reaction: 'Tendon tenderness, severe skin rash, and nausea',
+          category: 'Drug',
+          contraindicatedDrugs: ['Ciprofloxacin', 'Levofloxacin', 'Ofloxacin']
+        }
+      ]
+    },
+    vitals: [
+      { id: 'v-s-1', name: 'Blood Pressure', value: '118/76', unit: 'mmHg', status: 'optimal', change: 'Normal healthy range', changeType: 'neutral', lastRecorded: 'Today, 08:30 AM' },
+      { id: 'v-s-2', name: 'Fasting Blood Glucose', value: 92, unit: 'mg/dL', status: 'optimal', change: 'Within ideal glycemic limits', changeType: 'down', lastRecorded: 'Yesterday' },
+      { id: 'v-s-3', name: 'TSH (Thyroid Stimulating Hormone)', value: 4.8, unit: 'uIU/mL', status: 'warning', change: 'Elevated (Target < 4.0)', changeType: 'up', lastRecorded: '14 Oct 2026' },
+      { id: 'v-s-4', name: 'Resting Heart Rate', value: 72, unit: 'bpm', status: 'optimal', change: 'Resting sinus rhythm', changeType: 'neutral', lastRecorded: 'Today, 08:30 AM' },
+      { id: 'v-s-5', name: 'Vitamin D3 (25-OH)', value: 18.4, unit: 'ng/mL', status: 'alert', change: 'Deficient (< 20 ng/mL)', changeType: 'down', lastRecorded: '02 Oct 2026' }
+    ],
+    medications: [
+      {
+        id: 'med-s-1',
+        name: 'Thyronorm 50 mcg',
+        genericName: 'Levothyroxine Sodium IP',
+        dosage: '50 mcg',
+        frequency: 'Once daily (Empty stomach)',
+        timing: 'Before Food',
+        prescribedBy: 'Dr. Ramesh N. Rao',
+        prescribedDate: '05 Sep 2026',
+        pillsRemaining: 18,
+        totalPills: 30,
+        refillAlert: false,
+        category: 'Endocrinology',
+        isTakenToday: true
+      },
+      {
+        id: 'med-s-2',
+        name: 'Calcirol 60K Sachet',
+        genericName: 'Cholecalciferol 60,000 IU',
+        dosage: '60,000 IU',
+        frequency: 'Once weekly on Sundays with milk',
+        timing: 'After Food',
+        prescribedBy: 'Dr. Ramesh N. Rao',
+        prescribedDate: '02 Oct 2026',
+        pillsRemaining: 3,
+        totalPills: 8,
+        refillAlert: false,
+        category: 'General',
+        isTakenToday: false
+      }
+    ],
+    reports: [
+      {
+        id: 'rep-s-01',
+        title: 'Thyroid Panel & Vitamin D3 Profile',
+        date: '14 Oct 2026',
+        category: 'Endocrinology',
+        doctor: 'Dr. Ramesh N. Rao',
+        facility: 'Apollo Clinic - Indiranagar',
+        fileType: 'PDF',
+        fileSize: '1.4 MB',
+        summary: 'TSH mildly elevated at 4.8 uIU/mL. Free T3 and Free T4 within normal reference limits. Vitamin D3 requires 8-week weekly supplementation.',
+        status: 'Verified',
+        keyValues: [
+          { name: 'TSH', value: '4.8 uIU/mL', reference: '0.4 - 4.2 uIU/mL', isAbnormal: true },
+          { name: 'Free T4', value: '1.14 ng/dL', reference: '0.8 - 1.8 ng/dL', isAbnormal: false },
+          { name: 'Vitamin D3', value: '18.4 ng/mL', reference: '30 - 100 ng/mL', isAbnormal: true }
+        ]
+      }
+    ],
+    trends: [
+      { date: '2026-05', displayDate: 'May', sugarFasting: 95, sugarPostPrandial: 120, bpSystolic: 120, bpDiastolic: 78, cholesterolTotal: 172, cholesterolLdl: 94 },
+      { date: '2026-07', displayDate: 'Jul', sugarFasting: 91, sugarPostPrandial: 118, bpSystolic: 116, bpDiastolic: 75, cholesterolTotal: 168, cholesterolLdl: 90 },
+      { date: '2026-09', displayDate: 'Sep', sugarFasting: 94, sugarPostPrandial: 122, bpSystolic: 118, bpDiastolic: 76, cholesterolTotal: 170, cholesterolLdl: 92 },
+      { date: '2026-10', displayDate: 'Oct', sugarFasting: 92, sugarPostPrandial: 119, bpSystolic: 118, bpDiastolic: 76, cholesterolTotal: 165, cholesterolLdl: 88 }
+    ]
+  },
+  {
+    id: 'acc-3',
+    name: 'Aarav Kumar',
+    relationship: 'Child',
+    abhaId: '91-2291-7744-1299',
+    phone: '+91 98450 28192',
+    email: 'rajesh.kumar@healthconnect.in',
+    bloodGroup: 'A+',
+    gender: 'Male',
+    age: 12,
+    googleConnected: false,
+    phoneVerified: true,
+    patientData: {
+      ...mockPatient,
+      id: 'PT-22910',
+      name: 'Aarav Kumar',
+      age: 12,
+      gender: 'Male',
+      dob: '10 Nov 2014',
+      bloodGroup: 'A+',
+      healthId: '91-2291-7744-1299',
+      chronicConditions: ['Mild Allergic Asthma (Cold/Dust Induced)', 'Seasonal Allergic Rhinitis'],
+      allergies: [
+        {
+          id: 'alg-aarav-1',
+          substance: 'House Dust Mite & Pollen',
+          severity: 'Moderate',
+          reaction: 'Sneezing, wheezing, and ocular pruritus',
+          category: 'Environmental',
+          contraindicatedDrugs: []
+        }
+      ]
+    },
+    vitals: [
+      { id: 'v-a-1', name: 'Pulse / Heart Rate', value: 84, unit: 'bpm', status: 'optimal', change: 'Normal pediatric pulse', changeType: 'neutral', lastRecorded: 'Today, 09:00 AM' },
+      { id: 'v-a-2', name: 'Blood Oxygen (SpO2)', value: 99, unit: '%', status: 'optimal', change: 'Normal pulmonary oxygenation', changeType: 'neutral', lastRecorded: 'Today, 09:00 AM' },
+      { id: 'v-a-3', name: 'Body Temperature', value: 98.4, unit: '°F', status: 'optimal', change: 'Afebrile', changeType: 'neutral', lastRecorded: 'Today, 09:00 AM' },
+      { id: 'v-a-4', name: 'Peak Expiratory Flow (PEF)', value: 380, unit: 'L/min', status: 'optimal', change: 'Green zone (> 80% predicted)', changeType: 'up', lastRecorded: '12 Oct 2026' }
+    ],
+    medications: [
+      {
+        id: 'med-a-1',
+        name: 'Budecort 100 Inhaler',
+        genericName: 'Budesonide Inhalation IP',
+        dosage: '100 mcg',
+        frequency: '1 puff bedtime with spacer',
+        timing: 'Bedtime',
+        prescribedBy: 'Dr. Geeta Shenoy (Pediatrician)',
+        prescribedDate: '10 Aug 2026',
+        pillsRemaining: 45,
+        totalPills: 120,
+        refillAlert: false,
+        category: 'Respiratory',
+        isTakenToday: true
+      },
+      {
+        id: 'med-a-2',
+        name: 'Montair LC Kid Syrup',
+        genericName: 'Montelukast 4mg + Levocetirizine 2.5mg',
+        dosage: '5 mL',
+        frequency: 'Once daily at night (as needed during dust exposure)',
+        timing: 'Bedtime',
+        prescribedBy: 'Dr. Geeta Shenoy (Pediatrician)',
+        prescribedDate: '10 Aug 2026',
+        pillsRemaining: 15,
+        totalPills: 60,
+        refillAlert: false,
+        category: 'Respiratory',
+        isTakenToday: false
+      }
+    ],
+    reports: [
+      {
+        id: 'rep-a-01',
+        title: 'Pediatric Pulmonary Function & Allergy Panel',
+        date: '20 Sep 2026',
+        category: 'Blood Work',
+        doctor: 'Dr. Geeta Shenoy',
+        facility: 'Rainbow Children Hospital - Bangalore',
+        fileType: 'PDF',
+        fileSize: '1.1 MB',
+        summary: 'Serum IgE levels elevated at 280 IU/mL confirming allergic diathesis. Lung spirometry shows excellent bronchodilator reversibility response.',
+        status: 'Verified',
+        keyValues: [
+          { name: 'Total Serum IgE', value: '280 IU/mL', reference: '< 100 IU/mL', isAbnormal: true },
+          { name: 'Absolute Eosinophil Count', value: '480 /mcL', reference: '40 - 450 /mcL', isAbnormal: true },
+          { name: 'SpO2 Room Air', value: '99%', reference: '> 95%', isAbnormal: false }
+        ]
+      }
+    ],
+    trends: [
+      { date: '2026-06', displayDate: 'Jun', sugarFasting: 84, sugarPostPrandial: 104, bpSystolic: 102, bpDiastolic: 64, cholesterolTotal: 140, cholesterolLdl: 72 },
+      { date: '2026-08', displayDate: 'Aug', sugarFasting: 82, sugarPostPrandial: 102, bpSystolic: 100, bpDiastolic: 62, cholesterolTotal: 138, cholesterolLdl: 70 },
+      { date: '2026-10', displayDate: 'Oct', sugarFasting: 85, sugarPostPrandial: 106, bpSystolic: 104, bpDiastolic: 65, cholesterolTotal: 142, cholesterolLdl: 74 }
+    ]
   }
 ];
