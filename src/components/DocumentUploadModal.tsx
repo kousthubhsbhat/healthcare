@@ -314,7 +314,7 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
               {/* Progress bar */}
               <div className="w-full max-w-sm mx-auto h-2 bg-slate-200 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-sky-500 to-blue-600 transition-all duration-300 rounded-full"
+                  className="h-full bg-sky-600 transition-all duration-300 rounded-full"
                   style={{ width: `${analysisProgress}%` }}
                 />
               </div>

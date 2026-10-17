@@ -36,9 +36,9 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
         {/* Upload Report Button */}
         <button
           onClick={onOpenUpload}
-          className="flex flex-col items-center justify-center p-4 rounded-xl border border-sky-100 bg-gradient-to-b from-sky-50/80 to-white hover:from-sky-100 hover:to-sky-50 text-slate-800 hover:text-sky-900 shadow-xs hover:shadow-card transition-all group"
+          className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-sky-300 text-slate-800 hover:text-sky-900 shadow-xs hover:shadow-card transition-all group"
         >
-          <div className="w-11 h-11 rounded-xl bg-sky-600 text-white flex items-center justify-center shadow-md shadow-sky-500/20 group-hover:scale-110 transition-transform">
+          <div className="w-11 h-11 rounded-xl bg-sky-600 text-white flex items-center justify-center shadow-md shadow-sky-600/20 group-hover:scale-105 transition-transform">
             <UploadCloud className="w-6 h-6" />
           </div>
           <span className="font-heading font-bold text-xs sm:text-sm mt-2.5 text-center text-slate-800 group-hover:text-sky-700">
@@ -52,9 +52,9 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
         {/* Show QR Code Button */}
         <button
           onClick={onOpenQR}
-          className="flex flex-col items-center justify-center p-4 rounded-xl border border-emerald-100 bg-gradient-to-b from-emerald-50/80 to-white hover:from-emerald-100 hover:to-emerald-50 text-slate-800 hover:text-emerald-900 shadow-xs hover:shadow-card transition-all group"
+          className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-emerald-300 text-slate-800 hover:text-emerald-900 shadow-xs hover:shadow-card transition-all group"
         >
-          <div className="w-11 h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/20 group-hover:scale-110 transition-transform">
+          <div className="w-11 h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-600/20 group-hover:scale-105 transition-transform">
             <QrCode className="w-6 h-6" />
           </div>
           <span className="font-heading font-bold text-xs sm:text-sm mt-2.5 text-center text-slate-800 group-hover:text-emerald-700">
@@ -68,9 +68,9 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
         {/* Doctor Clinical View & Trends */}
         <button
           onClick={onOpenDoctorView}
-          className="flex flex-col items-center justify-center p-4 rounded-xl border border-blue-100 bg-gradient-to-b from-blue-50/80 to-white hover:from-blue-100 hover:to-blue-50 text-slate-800 hover:text-blue-900 shadow-xs hover:shadow-card transition-all group"
+          className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-blue-300 text-slate-800 hover:text-blue-900 shadow-xs hover:shadow-card transition-all group"
         >
-          <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20 group-hover:scale-110 transition-transform">
+          <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-600/20 group-hover:scale-105 transition-transform">
             <LineChart className="w-6 h-6" />
           </div>
           <span className="font-heading font-bold text-xs sm:text-sm mt-2.5 text-center text-slate-800 group-hover:text-blue-700">
@@ -84,9 +84,9 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
         {/* Emergency Mode Button */}
         <button
           onClick={onOpenEmergency}
-          className="flex flex-col items-center justify-center p-4 rounded-xl border border-red-200 bg-gradient-to-b from-red-50 to-rose-100 hover:from-red-100 hover:to-rose-200 text-red-900 shadow-xs hover:shadow-card transition-all group relative overflow-hidden"
+          className="flex flex-col items-center justify-center p-4 rounded-xl border border-red-200 bg-white hover:bg-rose-50/50 hover:border-red-400 text-red-900 shadow-xs hover:shadow-card transition-all group relative overflow-hidden"
         >
-          <div className="w-11 h-11 rounded-xl bg-red-600 text-white flex items-center justify-center shadow-md shadow-red-500/30 group-hover:scale-110 transition-transform">
+          <div className="w-11 h-11 rounded-xl bg-red-600 text-white flex items-center justify-center shadow-md shadow-red-600/25 group-hover:scale-105 transition-transform">
             <ShieldAlert className="w-6 h-6" />
           </div>
           <span className="font-heading font-extrabold text-xs sm:text-sm mt-2.5 text-center text-red-700">
@@ -102,12 +102,12 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
         {onOpenSettings && (
           <button
             onClick={onOpenSettings}
-            className="col-span-2 sm:col-span-1 flex flex-col items-center justify-center p-4 rounded-xl border border-purple-100 bg-gradient-to-b from-purple-50/80 to-white hover:from-purple-100 hover:to-purple-50 text-slate-800 hover:text-purple-900 shadow-xs hover:shadow-card transition-all group"
+            className="col-span-2 sm:col-span-1 flex flex-col items-center justify-center p-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-400 text-slate-800 hover:text-slate-900 shadow-xs hover:shadow-card transition-all group"
           >
-            <div className="w-11 h-11 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-md shadow-purple-500/20 group-hover:scale-110 transition-transform">
+            <div className="w-11 h-11 rounded-xl bg-slate-800 text-white flex items-center justify-center shadow-md shadow-slate-900/15 group-hover:scale-105 transition-transform">
               <Users className="w-6 h-6" />
             </div>
-            <span className="font-heading font-bold text-xs sm:text-sm mt-2.5 text-center text-slate-800 group-hover:text-purple-700">
+            <span className="font-heading font-bold text-xs sm:text-sm mt-2.5 text-center text-slate-800 group-hover:text-slate-900">
               Accounts & Settings
             </span>
             <span className="text-[10px] text-slate-500 text-center mt-0.5">

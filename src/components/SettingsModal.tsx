@@ -232,7 +232,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       <div className="bg-white rounded-2xl max-w-2xl w-full border border-slate-200 shadow-2xl overflow-hidden relative animate-in fade-in zoom-in-95 duration-200">
         
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-gradient-to-r from-sky-50/50 via-slate-50 to-white">
+        <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold shadow-md shadow-sky-500/20">
               <User className="w-5 h-5" />
@@ -330,9 +330,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <div className="space-y-5">
               
               {/* Active Profile Banner */}
-              <div className="bg-gradient-to-r from-sky-50 to-blue-50 border border-sky-200 rounded-2xl p-4 flex items-center justify-between">
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3.5">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-sky-600 to-blue-500 text-white font-extrabold text-lg flex items-center justify-center shadow-md shadow-sky-500/20">
+                  <div className="w-12 h-12 rounded-xl bg-sky-600 text-white font-extrabold text-lg flex items-center justify-center shadow-md shadow-sky-600/20">
                     {currentActiveAccount.name.slice(0, 2).toUpperCase()}
                   </div>
                   <div>
@@ -627,7 +627,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         className="p-3 rounded-xl border border-slate-200 bg-white hover:border-sky-400 hover:bg-sky-50/40 text-left transition-all shadow-2xs group flex items-center justify-between"
                       >
                         <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-sky-500 to-blue-600 text-white font-bold text-[10px] flex items-center justify-center">
+                          <div className="w-7 h-7 rounded-full bg-sky-600 text-white font-bold text-[10px] flex items-center justify-center">
                             {g.name[0]}
                           </div>
                           <div>

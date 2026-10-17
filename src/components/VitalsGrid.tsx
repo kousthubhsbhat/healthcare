@@ -16,8 +16,8 @@ export const VitalsGrid: React.FC<VitalsGridProps> = ({ vitals, language }) => {
     if (n.includes('pressure') || n.includes('bp')) return <Activity className="w-5 h-5 text-sky-600" />;
     if (n.includes('sugar') || n.includes('glucose') || n.includes('hba1c')) return <Droplets className="w-5 h-5 text-amber-600" />;
     if (n.includes('heart rate') || n.includes('pulse')) return <Heart className="w-5 h-5 text-rose-600" />;
-    if (n.includes('cholesterol') || n.includes('lipid')) return <Activity className="w-5 h-5 text-indigo-600" />;
-    if (n.includes('tsh') || n.includes('thyroid')) return <Activity className="w-5 h-5 text-purple-600" />;
+    if (n.includes('cholesterol') || n.includes('lipid')) return <Activity className="w-5 h-5 text-blue-600" />;
+    if (n.includes('tsh') || n.includes('thyroid')) return <Activity className="w-5 h-5 text-teal-600" />;
     if (n.includes('hemoglobin') || n.includes('blood') || n.includes('rbc')) return <Droplets className="w-5 h-5 text-red-600" />;
     return <Wind className="w-5 h-5 text-emerald-600" />;
   };

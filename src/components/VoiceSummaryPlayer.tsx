@@ -86,7 +86,7 @@ export const VoiceSummaryPlayer: React.FC<VoiceSummaryPlayerProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="bg-gradient-to-r from-sky-900 via-indigo-950 to-slate-900 text-white rounded-2xl border border-sky-600/40 shadow-xl p-5 relative overflow-hidden animate-in slide-in-from-top-4 duration-300">
+    <div className="bg-slate-900 text-white rounded-2xl border border-slate-800 shadow-xl p-5 relative overflow-hidden animate-in slide-in-from-top-4 duration-300">
       {/* Decorative pulse blur */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
 

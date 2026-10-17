@@ -80,7 +80,7 @@ export const EmergencyModeModal: React.FC<EmergencyModeModalProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           
           {/* Blood Group Giant Hero Card */}
-          <div className="md:col-span-1 bg-gradient-to-b from-red-950/70 to-slate-900 border-2 border-red-500 rounded-3xl p-6 flex flex-col items-center justify-center text-center shadow-emergency relative overflow-hidden">
+          <div className="md:col-span-1 bg-slate-900 border-2 border-red-500 rounded-3xl p-6 flex flex-col items-center justify-center text-center shadow-emergency relative overflow-hidden">
             <div className="absolute top-2 right-2">
               <span className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-red-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
@@ -109,7 +109,7 @@ export const EmergencyModeModal: React.FC<EmergencyModeModalProps> = ({
           </div>
 
           {/* Critical Allergies Hero Box */}
-          <div className="md:col-span-2 bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-red-500 rounded-3xl p-6 space-y-4 shadow-emergency">
+          <div className="md:col-span-2 bg-slate-900 border-2 border-red-500 rounded-3xl p-6 space-y-4 shadow-emergency">
             <div className="flex items-center justify-between pb-2 border-b border-red-900/50">
               <div className="flex items-center gap-2 text-red-400 font-black text-sm uppercase tracking-wider">
                 <AlertTriangle className="w-5 h-5 text-red-500 animate-bounce" />

@@ -46,7 +46,7 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => onViewChange('patient')}
               className="flex items-center gap-2.5 cursor-pointer group"
             >
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-tr from-sky-600 to-blue-500 flex items-center justify-center text-white shadow-md shadow-sky-500/25 group-hover:scale-105 transition-transform">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-sky-600 flex items-center justify-center text-white shadow-md shadow-sky-600/20 group-hover:scale-105 transition-transform">
                 <Activity className="w-6 h-6 stroke-[2.5]" />
               </div>
               <div className="hidden sm:block">

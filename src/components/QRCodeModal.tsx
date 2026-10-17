@@ -389,7 +389,7 @@ Full Portal: ${portalUrl}`;
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
             
             {/* Left Box: QR Card */}
-            <div className="flex flex-col items-center justify-center p-5 sm:p-6 bg-gradient-to-b from-slate-50 to-white rounded-2xl border-2 border-slate-200/90 shadow-card relative">
+            <div className="flex flex-col items-center justify-center p-5 sm:p-6 bg-white rounded-2xl border-2 border-slate-200/90 shadow-card relative">
               
               {isRevoked ? (
                 <div className="h-64 flex flex-col items-center justify-center text-center p-4">
@@ -470,7 +470,7 @@ Full Portal: ${portalUrl}`;
             <div className="space-y-4">
               
               {/* Expiration Timer Card */}
-              <div className="bg-gradient-to-br from-sky-50 via-blue-50 to-emerald-50 rounded-2xl p-5 border border-sky-200/80 shadow-xs">
+              <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 shadow-xs">
                 <div className="flex items-center gap-2 text-sky-900 font-bold text-xs uppercase tracking-wider mb-2">
                   <Clock className="w-4 h-4 text-sky-600" />
                   <span>{t.qrExpiresIn}</span>

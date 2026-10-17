@@ -35,8 +35,8 @@ export const PatientProfileHeader: React.FC<PatientProfileHeaderProps> = ({
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 shadow-card p-5 sm:p-7 relative overflow-hidden transition-all hover:shadow-md">
-      {/* Soft Blue Gradient Accent Top Bar */}
-      <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-sky-500 via-blue-600 to-emerald-500" />
+      {/* Blue Accent Top Bar */}
+      <div className="absolute top-0 left-0 right-0 h-1.5 bg-sky-600" />
 
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pt-1">
         
@@ -45,7 +45,7 @@ export const PatientProfileHeader: React.FC<PatientProfileHeaderProps> = ({
           
           {/* Avatar with Blood Group Badge */}
           <div className="relative">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-sky-100 to-blue-200 border-2 border-white shadow-md flex items-center justify-center text-sky-800 text-2xl sm:text-3xl font-extrabold tracking-tight">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-sky-50 border-2 border-sky-200 shadow-xs flex items-center justify-center text-sky-800 text-2xl sm:text-3xl font-extrabold tracking-tight">
               {patient.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
             </div>
             
@@ -203,7 +203,7 @@ export const PatientProfileHeader: React.FC<PatientProfileHeaderProps> = ({
 
             <button
               onClick={onOpenEmergency}
-              className="mt-2.5 w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white text-xs font-bold py-1.5 px-3 rounded-lg flex items-center justify-center gap-1.5 shadow-sm transition-all"
+              className="mt-2.5 w-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-1.5 px-3 rounded-lg flex items-center justify-center gap-1.5 shadow-sm transition-all"
             >
               <AlertTriangle className="w-3.5 h-3.5" />
               <span>Launch Emergency Card</span>

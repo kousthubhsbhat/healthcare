@@ -48,7 +48,7 @@ export const DrugAllergyAlert: React.FC<DrugAllergyAlertProps> = ({ allergies, l
   };
 
   return (
-    <aside aria-label="Clinical safety warning" className="rounded-2xl border-2 border-red-400 bg-gradient-to-r from-red-500 via-rose-500 to-red-600 text-white shadow-lg overflow-hidden transition-all">
+    <aside aria-label="Clinical safety warning" className="rounded-2xl border-2 border-red-500 bg-red-600 text-white shadow-lg overflow-hidden transition-all">
       {/* Top Banner Alert Bar */}
       <div className="p-4 sm:p-5 flex items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">

@@ -805,7 +805,7 @@ export const App: React.FC = () => {
             {reports.length > 0 && (
               <div 
                 id="latest-report-section"
-                className="bg-gradient-to-br from-white via-sky-50/40 to-blue-50/20 rounded-2xl border border-sky-200/90 shadow-card p-5 sm:p-6 space-y-4 ring-1 ring-sky-100"
+                className="bg-white rounded-2xl border border-slate-200/90 shadow-card p-5 sm:p-6 space-y-4"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
                   <div className="flex items-center gap-2.5">
@@ -1055,7 +1055,7 @@ export const App: React.FC = () => {
             )}
 
             {/* Doctor View Sub-Header */}
-            <div className="bg-gradient-to-r from-sky-900 via-blue-900 to-indigo-900 text-white rounded-2xl p-5 sm:p-6 shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="bg-slate-900 text-white rounded-2xl border border-slate-800 p-5 sm:p-6 shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="bg-white/20 text-white text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded backdrop-blur-xs">
