@@ -7,7 +7,7 @@ import {
   mockAccessLogs, 
   mockHealthTrends 
 } from './data/mockData';
-import { LanguageCode, LabReport, Medication } from './types/health';
+import { LanguageCode, LabReport, Medication, HealthTrendPoint, VitalMetric } from './types/health';
 import { Header } from './components/Header';
 import { PatientProfileHeader } from './components/PatientProfileHeader';
 import { VitalsGrid } from './components/VitalsGrid';
@@ -58,6 +58,8 @@ export const App: React.FC = () => {
   const [patient, setPatient] = useState(mockPatient);
   const [medications, setMedications] = useState(mockMedications);
   const [reports, setReports] = useState<LabReport[]>(mockLabReports);
+  const [vitals, setVitals] = useState(mockVitals);
+  const [healthTrends, setHealthTrends] = useState(mockHealthTrends);
   const [accessLogs] = useState(mockAccessLogs);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -188,8 +190,225 @@ export const App: React.FC = () => {
   };
 
   const handleReportAdded = (newReport: LabReport) => {
-    setReports([newReport, ...reports]);
-    showToast(`Report "${newReport.title}" successfully added to health timeline!`);
+    // 1. Update Reports List (displays immediately in Recent Diagnostic Reports)
+    setReports((prev) => [newReport, ...prev]);
+
+    // 2. Dynamically Update Vitals Grid
+    setVitals((prevVitals) => {
+      let updated = [...prevVitals];
+
+      newReport.keyValues.forEach((kv) => {
+        const nameLower = kv.name.toLowerCase();
+        const valMatch = kv.value.match(/([0-9]+(?:\.[0-9]+)?)/);
+        const numVal = valMatch ? parseFloat(valMatch[1]) : null;
+
+        // Blood Glucose / Fasting Sugar
+        if (nameLower.includes('glucose') || nameLower.includes('sugar') || nameLower.includes('fbs')) {
+          const idx = updated.findIndex((v) => v.name.toLowerCase().includes('sugar') || v.name.toLowerCase().includes('glucose'));
+          if (idx !== -1) {
+            updated[idx] = {
+              ...updated[idx],
+              value: numVal ?? kv.value,
+              status: kv.isAbnormal ? (numVal && numVal > 200 ? 'alert' : 'warning') : 'optimal',
+              change: `Updated from ${newReport.title}`,
+              changeType: kv.isAbnormal ? 'up' : 'down',
+              lastRecorded: `Today • ${newReport.date}`,
+            };
+          }
+        }
+        // Blood Pressure
+        else if (nameLower.includes('bp') || nameLower.includes('blood pressure') || nameLower.includes('systolic')) {
+          const idx = updated.findIndex((v) => v.name.toLowerCase().includes('pressure'));
+          if (idx !== -1) {
+            updated[idx] = {
+              ...updated[idx],
+              value: kv.value.replace(/[^0-9/]/g, '').trim() || kv.value,
+              status: kv.isAbnormal ? 'warning' : 'optimal',
+              change: `Synced from ${newReport.title}`,
+              changeType: kv.isAbnormal ? 'up' : 'down',
+              lastRecorded: `Today • ${newReport.date}`,
+            };
+          }
+        }
+        // Heart Rate / Pulse
+        else if (nameLower.includes('heart rate') || nameLower.includes('pulse')) {
+          const idx = updated.findIndex((v) => v.name.toLowerCase().includes('heart rate'));
+          if (idx !== -1) {
+            updated[idx] = {
+              ...updated[idx],
+              value: numVal ?? kv.value,
+              status: kv.isAbnormal ? 'warning' : 'normal',
+              change: `Recorded in ${newReport.title}`,
+              lastRecorded: `Today • ${newReport.date}`,
+            };
+          }
+        }
+        // Oxygen SpO2
+        else if (nameLower.includes('oxygen') || nameLower.includes('spo2')) {
+          const idx = updated.findIndex((v) => v.name.toLowerCase().includes('oxygen') || v.name.toLowerCase().includes('spo2'));
+          if (idx !== -1) {
+            updated[idx] = {
+              ...updated[idx],
+              value: numVal ?? kv.value,
+              status: numVal && numVal < 94 ? 'alert' : 'optimal',
+              lastRecorded: `Today • ${newReport.date}`,
+            };
+          }
+        }
+        // Other High-Impact Biomarkers: Cholesterol, TSH, Hemoglobin, Creatinine, etc.
+        else if (
+          nameLower.includes('cholesterol') ||
+          nameLower.includes('tsh') ||
+          nameLower.includes('thyroid') ||
+          nameLower.includes('hemoglobin') ||
+          nameLower.includes('creatinine') ||
+          nameLower.includes('sgpt') ||
+          kv.isAbnormal
+        ) {
+          const existingIdx = updated.findIndex((v) => v.name.toLowerCase() === kv.name.toLowerCase());
+          if (existingIdx !== -1) {
+            updated[existingIdx] = {
+              ...updated[existingIdx],
+              value: numVal ?? kv.value,
+              status: kv.isAbnormal ? 'warning' : 'optimal',
+              lastRecorded: `Today • ${newReport.title}`,
+            };
+          } else {
+            let unitStr = kv.value.replace(/[0-9.]/g, '').trim();
+            if (!unitStr) {
+              if (nameLower.includes('cholesterol') || nameLower.includes('triglyceride')) unitStr = 'mg/dL';
+              else if (nameLower.includes('tsh')) unitStr = 'uIU/mL';
+              else if (nameLower.includes('hemoglobin')) unitStr = 'g/dL';
+              else if (nameLower.includes('wbc')) unitStr = '/mcL';
+              else if (nameLower.includes('platelet')) unitStr = '/mcL';
+              else unitStr = 'Units';
+            }
+            updated.push({
+              id: `vit-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+              name: kv.name,
+              value: numVal ?? kv.value,
+              unit: unitStr,
+              status: kv.isAbnormal ? 'warning' : 'optimal',
+              change: `Extracted from ${newReport.title}`,
+              changeType: kv.isAbnormal ? 'up' : 'neutral',
+              lastRecorded: `Just now • ${newReport.title}`,
+            });
+          }
+        }
+      });
+
+      return updated;
+    });
+
+    // 3. Dynamically Update Patient Chronic Conditions
+    setPatient((prevPatient) => {
+      const conditions = [...prevPatient.chronicConditions];
+      const titleLower = newReport.title.toLowerCase();
+
+      if (titleLower.includes('thyroid') || newReport.keyValues.some((k) => k.name.toLowerCase().includes('tsh'))) {
+        const hasHypo = conditions.some((c) => c.toLowerCase().includes('thyroid'));
+        if (!hasHypo) {
+          conditions.push('Subclinical Hypothyroidism (Diagnosed via lab)');
+        }
+      }
+
+      if (titleLower.includes('lipid') || newReport.keyValues.some((k) => k.name.toLowerCase().includes('cholesterol') && k.isAbnormal)) {
+        const hasLipid = conditions.some((c) => c.toLowerCase().includes('lipid') || c.toLowerCase().includes('cholesterol'));
+        if (!hasLipid) {
+          conditions.push('Dyslipidemia / Hypercholesterolemia');
+        }
+      }
+
+      if (titleLower.includes('cbc') || newReport.keyValues.some((k) => k.name.toLowerCase().includes('hemoglobin') && k.isAbnormal)) {
+        const hasAnemia = conditions.some((c) => c.toLowerCase().includes('anemia'));
+        if (!hasAnemia) {
+          conditions.push('Mild Microcytic Anemia');
+        }
+      }
+
+      return {
+        ...prevPatient,
+        chronicConditions: conditions,
+      };
+    });
+
+    // 4. Dynamically Update Active Medications if Prescription or Medication detected
+    const summaryLower = (newReport.summary || '').toLowerCase();
+    const commonMeds: {
+      match: string;
+      name: string;
+      genericName: string;
+      dosage: string;
+      frequency: string;
+      timing: 'Before Food' | 'After Food' | 'With Food' | 'Bedtime';
+      category: 'Cardiology' | 'Endocrinology' | 'General';
+    }[] = [
+      { match: 'atorvastatin', name: 'Atorvastatin 20mg', genericName: 'Atorvastatin Calcium IP', dosage: '20 mg', frequency: 'Once daily bedtime', timing: 'Bedtime', category: 'Cardiology' },
+      { match: 'levothyroxine', name: 'Levothyroxine 50mcg', genericName: 'Levothyroxine Sodium', dosage: '50 mcg', frequency: 'Once daily morning', timing: 'Before Food', category: 'Endocrinology' },
+      { match: 'metformin', name: 'Metformin 500mg ER', genericName: 'Metformin Hydrochloride', dosage: '500 mg', frequency: 'Twice daily with meals', timing: 'After Food', category: 'Endocrinology' },
+      { match: 'telmisartan', name: 'Telmisartan 40mg', genericName: 'Telmisartan IP', dosage: '40 mg', frequency: 'Once daily morning', timing: 'Before Food', category: 'Cardiology' },
+      { match: 'rosuvastatin', name: 'Rosuvastatin 10mg', genericName: 'Rosuvastatin Calcium', dosage: '10 mg', frequency: 'Once daily bedtime', timing: 'Bedtime', category: 'Cardiology' },
+    ];
+
+    commonMeds.forEach((m) => {
+      if (summaryLower.includes(m.match)) {
+        setMedications((prevMeds) => {
+          if (prevMeds.some((existing) => existing.name.toLowerCase().includes(m.match))) {
+            return prevMeds;
+          }
+          const newMed: Medication = {
+            id: `med-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+            name: m.name,
+            genericName: m.genericName,
+            dosage: m.dosage,
+            frequency: m.frequency,
+            timing: m.timing,
+            prescribedBy: newReport.doctor || 'Dr. Ramesh N. Rao',
+            prescribedDate: newReport.date || 'Today',
+            pillsRemaining: 30,
+            totalPills: 30,
+            refillAlert: false,
+            category: m.category,
+            isTakenToday: false,
+          };
+          return [newMed, ...prevMeds];
+        });
+      }
+    });
+
+    // 5. Update Health Trends Point
+    let extractedSugar: number | undefined;
+    let extractedCholesterol: number | undefined;
+    let extractedLdl: number | undefined;
+
+    newReport.keyValues.forEach((kv) => {
+      const n = kv.name.toLowerCase();
+      const numMatch = kv.value.match(/([0-9]+(?:\.[0-9]+)?)/);
+      if (!numMatch) return;
+      const val = parseFloat(numMatch[1]);
+      if (n.includes('glucose') || n.includes('sugar') || n.includes('fbs')) extractedSugar = val;
+      if (n.includes('total cholesterol') || n === 'cholesterol') extractedCholesterol = val;
+      if (n.includes('ldl')) extractedLdl = val;
+    });
+
+    if (extractedSugar || extractedCholesterol || extractedLdl) {
+      setHealthTrends((prevTrends) => {
+        const last = prevTrends[prevTrends.length - 1] || mockHealthTrends[mockHealthTrends.length - 1];
+        const newPoint: HealthTrendPoint = {
+          date: new Date().toISOString().slice(0, 7),
+          displayDate: 'Today (Live)',
+          sugarFasting: extractedSugar ?? last.sugarFasting,
+          sugarPostPrandial: Math.round((extractedSugar ?? last.sugarFasting) * 1.35),
+          bpSystolic: last.bpSystolic,
+          bpDiastolic: last.bpDiastolic,
+          cholesterolTotal: extractedCholesterol ?? last.cholesterolTotal,
+          cholesterolLdl: extractedLdl ?? last.cholesterolLdl,
+        };
+        return [...prevTrends, newPoint];
+      });
+    }
+
+    showToast(`✅ Patient Dashboard & Vitals updated from "${newReport.title}"!`);
   };
 
   return (
@@ -294,8 +513,8 @@ export const App: React.FC = () => {
               onOpenDoctorView={() => setCurrentView('doctor')}
             />
 
-            {/* Current Vitals Grid */}
-            <VitalsGrid vitals={mockVitals} language={language} />
+            {/* Current Vitals Grid (Synchronized with AI-analyzed reports) */}
+            <VitalsGrid vitals={vitals} language={language} />
 
             {/* Active Medications List & Refill Alerts */}
             <MedicationList
@@ -305,14 +524,20 @@ export const App: React.FC = () => {
               onAddMedication={handleAddMedication}
             />
 
+            {/* Interactive Longitudinal Trends (Updated on Report Upload) */}
+            <HealthTrendsChart data={healthTrends} language={language} />
+
             {/* Recent Lab Reports Mini-Widget */}
             <div className="bg-white rounded-2xl border border-slate-200/90 shadow-card p-5 sm:p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-base sm:text-lg font-heading font-bold text-slate-900">
-                    Recent Diagnostic Reports
+                  <h2 className="text-base sm:text-lg font-heading font-bold text-slate-900 flex items-center gap-2">
+                    <span>Recent Diagnostic Reports</span>
+                    <span className="text-xs bg-sky-100 text-sky-800 font-bold px-2 py-0.5 rounded-full">
+                      {reports.length} Total
+                    </span>
                   </h2>
-                  <p className="text-xs text-slate-500">Verified by hospital pathology network</p>
+                  <p className="text-xs text-slate-500">Verified by hospital pathology & AI extraction</p>
                 </div>
                 <button
                   onClick={() => setCurrentView('doctor')}
@@ -322,17 +547,35 @@ export const App: React.FC = () => {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {reports.slice(0, 2).map((r) => (
-                  <div key={r.id} className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white transition-all">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {reports.slice(0, 4).map((r) => (
+                  <div key={r.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white hover:border-sky-300 transition-all shadow-2xs">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800">
                         {r.category}
                       </span>
-                      <span className="text-xs text-slate-400">{r.date}</span>
+                      <span className="text-xs text-slate-400 font-medium">{r.date}</span>
                     </div>
                     <h3 className="font-heading font-bold text-slate-900 text-sm mt-1.5">{r.title}</h3>
                     <p className="text-xs text-slate-500 mt-1 line-clamp-2">{r.summary}</p>
+                    
+                    {/* Compact Biomarker Chips */}
+                    {r.keyValues && r.keyValues.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2.5 pt-2 border-t border-slate-200/60">
+                        {r.keyValues.slice(0, 3).map((kv, i) => (
+                          <span
+                            key={i}
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                              kv.isAbnormal
+                                ? 'bg-amber-100 text-amber-900 border border-amber-200'
+                                : 'bg-slate-100 text-slate-700'
+                            }`}
+                          >
+                            {kv.name}: <strong>{kv.value}</strong>
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -429,7 +672,7 @@ export const App: React.FC = () => {
             <DrugAllergyAlert allergies={patient.allergies} language={language} />
 
             {/* Interactive Trend Graphs (Blood Sugar, BP, Cholesterol) */}
-            <HealthTrendsChart data={mockHealthTrends} language={language} />
+            <HealthTrendsChart data={healthTrends} language={language} />
 
             {/* Clean Timeline of Past Lab Reports and Scans */}
             <DoctorTimelineView

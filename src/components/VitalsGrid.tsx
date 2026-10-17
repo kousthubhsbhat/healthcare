@@ -12,9 +12,13 @@ export const VitalsGrid: React.FC<VitalsGridProps> = ({ vitals, language }) => {
   const t = translations[language];
 
   const getIcon = (name: string) => {
-    if (name.includes('Pressure')) return <Activity className="w-5 h-5 text-sky-600" />;
-    if (name.includes('Sugar') || name.includes('Glucose')) return <Droplets className="w-5 h-5 text-amber-600" />;
-    if (name.includes('Heart Rate')) return <Heart className="w-5 h-5 text-rose-600" />;
+    const n = name.toLowerCase();
+    if (n.includes('pressure') || n.includes('bp')) return <Activity className="w-5 h-5 text-sky-600" />;
+    if (n.includes('sugar') || n.includes('glucose') || n.includes('hba1c')) return <Droplets className="w-5 h-5 text-amber-600" />;
+    if (n.includes('heart rate') || n.includes('pulse')) return <Heart className="w-5 h-5 text-rose-600" />;
+    if (n.includes('cholesterol') || n.includes('lipid')) return <Activity className="w-5 h-5 text-indigo-600" />;
+    if (n.includes('tsh') || n.includes('thyroid')) return <Activity className="w-5 h-5 text-purple-600" />;
+    if (n.includes('hemoglobin') || n.includes('blood') || n.includes('rbc')) return <Droplets className="w-5 h-5 text-red-600" />;
     return <Wind className="w-5 h-5 text-emerald-600" />;
   };
 
@@ -40,7 +44,10 @@ export const VitalsGrid: React.FC<VitalsGridProps> = ({ vitals, language }) => {
           <Activity className="w-5 h-5 text-sky-600" />
           <span>{t.vitalsOverview}</span>
         </h2>
-        <span className="text-xs text-slate-400 font-medium">Synced today 08:30 AM via Health Band</span>
+        <span className="text-xs text-slate-500 font-semibold bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200 flex items-center gap-1.5 shadow-2xs">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          Live Clinical Sync
+        </span>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">

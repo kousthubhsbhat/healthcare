@@ -98,6 +98,22 @@ export const PatientProfileHeader: React.FC<PatientProfileHeaderProps> = ({
               <span className="hidden sm:inline">•</span>
               <span>Physician: <strong className="text-slate-700">{patient.primaryPhysician.name}</strong></span>
             </div>
+
+            {/* Active & Verified Clinical Conditions */}
+            {patient.chronicConditions && patient.chronicConditions.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5 pt-2">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Conditions:</span>
+                {patient.chronicConditions.map((cond, idx) => (
+                  <span
+                    key={idx}
+                    className="text-[11px] font-bold px-2 py-0.5 rounded-lg bg-amber-50 text-amber-900 border border-amber-200/90 flex items-center gap-1 shadow-2xs animate-in fade-in"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                    <span>{cond}</span>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
