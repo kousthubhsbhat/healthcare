@@ -123,12 +123,14 @@ async def process_report_with_vision_llm(
     extracted_title = extraction.get("title") or report.get("title")
     extracted_category = extraction.get("category") or report.get("category")
 
+    extracted_date = extraction.get("date") or datetime.now().strftime("%d %b %Y")
     await supabase_service.update_report(
         report_id=report_id,
         update_data={
             "title": extracted_title,
             "category": extracted_category,
             "summary": summary,
+            "date": extracted_date,
             "status": "Flagged" if len(contraindication_alerts) > 0 or abnormal_count > 0 else "Verified",
             "keyValues": [b.model_dump() for b in evaluated_biomarkers],
             "aiProcessedAt": datetime.now(timezone.utc)

@@ -108,6 +108,8 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
       setAnalysisProgress(100);
       setIsAnalyzing(false);
       setExtractedReport(newReport);
+      // Immediately commit to dashboard so it reflects in real-time
+      onReportAdded(newReport);
 
     } catch (err) {
       console.warn('Backend server unreachable, executing direct Gemini Vision AI analysis:', err);
@@ -130,6 +132,7 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
         setAnalysisProgress(100);
         setIsAnalyzing(false);
         setExtractedReport(geminiReport);
+        onReportAdded(geminiReport);
       }, 400);
 
     } catch (geminiError) {
@@ -142,6 +145,7 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
         setAnalysisProgress(100);
         setIsAnalyzing(false);
         setExtractedReport(offlineReport);
+        onReportAdded(offlineReport);
       }, 500);
     }
   };
@@ -313,11 +317,13 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
           {extractedReport && (
             <div className="space-y-4">
               
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 flex items-center gap-3">
-                <CheckCircle className="w-6 h-6 text-emerald-600 shrink-0" />
-                <div>
-                  <h4 className="text-xs font-bold text-emerald-900">AI Analysis & Extraction Complete</h4>
-                  <p className="text-[11px] text-emerald-700">All clinical parameters successfully structured with reference flags.</p>
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-6 h-6 text-emerald-600 shrink-0" />
+                  <div>
+                    <h4 className="text-xs font-bold text-emerald-900">Report Successfully Analyzed & Synced to Dashboard!</h4>
+                    <p className="text-[11px] text-emerald-700">Biomarkers, vitals grid, and longitudinal trends have been updated in real-time.</p>
+                  </div>
                 </div>
               </div>
 
@@ -373,15 +379,15 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
                   onClick={handleReset}
                   className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors"
                 >
-                  Upload Another
+                  Upload Another Report
                 </button>
                 <button
                   type="button"
                   onClick={handleConfirmAndSave}
-                  className="px-5 py-2 text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-xl shadow-md shadow-sky-500/20 transition-all flex items-center gap-1.5"
+                  className="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md shadow-emerald-500/20 transition-all flex items-center gap-1.5"
                 >
                   <CheckCircle className="w-4 h-4" />
-                  <span>Confirm & Save to Record</span>
+                  <span>Done • View on Dashboard</span>
                 </button>
               </div>
 

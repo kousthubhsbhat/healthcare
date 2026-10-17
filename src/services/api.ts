@@ -64,6 +64,21 @@ export async function processReportWithVisionAI(
 }
 
 /**
+ * Fetches all timeline diagnostic reports for a patient from backend/Supabase
+ */
+export async function fetchPatientReports(patientId = 'pt-99421-bangalore'): Promise<any[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/reports/patient/${patientId}`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.reports || [];
+  } catch (err) {
+    console.warn('Could not fetch patient reports from backend:', err);
+    return [];
+  }
+}
+
+/**
  * Generates a randomized 24-hour UUID access token for QR sharing
  */
 export async function generateQRToken(

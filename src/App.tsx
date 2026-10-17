@@ -7,7 +7,7 @@ import {
   mockAccessLogs, 
   mockHealthTrends 
 } from './data/mockData';
-import { LanguageCode, LabReport, Medication, HealthTrendPoint, VitalMetric } from './types/health';
+import { LanguageCode, LabReport, Medication, HealthTrendPoint, VitalMetric, PatientProfile } from './types/health';
 import { Header } from './components/Header';
 import { PatientProfileHeader } from './components/PatientProfileHeader';
 import { VitalsGrid } from './components/VitalsGrid';
@@ -32,7 +32,7 @@ import {
 } from 'lucide-react';
 import { translations } from './data/translations';
 
-import { fetchPatientProfile, fetchDoctorView } from './services/api';
+import { fetchPatientProfile, fetchDoctorView, fetchPatientReports } from './services/api';
 
 export const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'patient' | 'doctor' | 'emergency'>('patient');
@@ -54,21 +54,131 @@ export const App: React.FC = () => {
     expiresInHours: number;
   } | null>(null);
 
-  // Data state
-  const [patient, setPatient] = useState(mockPatient);
-  const [medications, setMedications] = useState(mockMedications);
-  const [reports, setReports] = useState<LabReport[]>(mockLabReports);
-  const [vitals, setVitals] = useState(mockVitals);
-  const [healthTrends, setHealthTrends] = useState(mockHealthTrends);
+  // Data state with localStorage persistence
+  const [patient, setPatient] = useState<PatientProfile>(() => {
+    try {
+      const saved = localStorage.getItem('pulsehealth_patient');
+      return saved ? JSON.parse(saved) : mockPatient;
+    } catch {
+      return mockPatient;
+    }
+  });
+  const [medications, setMedications] = useState<Medication[]>(() => {
+    try {
+      const saved = localStorage.getItem('pulsehealth_medications');
+      return saved ? JSON.parse(saved) : mockMedications;
+    } catch {
+      return mockMedications;
+    }
+  });
+  const [reports, setReports] = useState<LabReport[]>(() => {
+    try {
+      const saved = localStorage.getItem('pulsehealth_reports');
+      return saved ? JSON.parse(saved) : mockLabReports;
+    } catch {
+      return mockLabReports;
+    }
+  });
+  const [vitals, setVitals] = useState<VitalMetric[]>(() => {
+    try {
+      const saved = localStorage.getItem('pulsehealth_vitals');
+      return saved ? JSON.parse(saved) : mockVitals;
+    } catch {
+      return mockVitals;
+    }
+  });
+  const [healthTrends, setHealthTrends] = useState<HealthTrendPoint[]>(() => {
+    try {
+      const saved = localStorage.getItem('pulsehealth_trends');
+      return saved ? JSON.parse(saved) : mockHealthTrends;
+    } catch {
+      return mockHealthTrends;
+    }
+  });
   const [accessLogs] = useState(mockAccessLogs);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Sync state to localStorage so updates survive page reloads
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('pulsehealth_reports', JSON.stringify(reports));
+    } catch (e) {
+      console.warn('LocalStorage error:', e);
+    }
+  }, [reports]);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('pulsehealth_vitals', JSON.stringify(vitals));
+    } catch (e) {
+      console.warn('LocalStorage error:', e);
+    }
+  }, [vitals]);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('pulsehealth_patient', JSON.stringify(patient));
+    } catch (e) {
+      console.warn('LocalStorage error:', e);
+    }
+  }, [patient]);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('pulsehealth_medications', JSON.stringify(medications));
+    } catch (e) {
+      console.warn('LocalStorage error:', e);
+    }
+  }, [medications]);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('pulsehealth_trends', JSON.stringify(healthTrends));
+    } catch (e) {
+      console.warn('LocalStorage error:', e);
+    }
+  }, [healthTrends]);
 
   // Sync with backend API on mount
   React.useEffect(() => {
     async function loadData() {
-      const liveProfile = await fetchPatientProfile();
-      if (liveProfile) {
-        setPatient(liveProfile);
+      try {
+        const liveProfile = await fetchPatientProfile();
+        if (liveProfile) {
+          setPatient((prev: any) => ({ ...prev, ...liveProfile }));
+        }
+
+        const liveReports = await fetchPatientReports();
+        if (liveReports && liveReports.length > 0) {
+          setReports((prev) => {
+            const map = new Map<string, LabReport>();
+            // Add live reports from backend
+            liveReports.forEach((r: any) => {
+              if (r && r.id) {
+                map.set(r.id, {
+                  id: r.id,
+                  title: r.title || 'Diagnostic Report',
+                  date: r.date || 'Today',
+                  category: r.category || 'Blood Work',
+                  doctor: r.doctor || 'Dr. Ramesh N. Rao',
+                  facility: r.facility || 'Manipal Diagnostic Lab - Supabase Vault',
+                  fileType: r.fileType || 'PDF',
+                  fileSize: r.fileSize || '1.2 MB',
+                  summary: r.summary || 'Verified clinical diagnostic report',
+                  status: r.status || 'Verified',
+                  keyValues: r.keyValues || []
+                });
+              }
+            });
+            // Keep existing reports
+            prev.forEach((r) => {
+              if (!map.has(r.id)) map.set(r.id, r);
+            });
+            return Array.from(map.values());
+          });
+        }
+      } catch (err) {
+        console.warn('Could not sync with live backend on mount:', err);
       }
     }
     loadData();
@@ -190,11 +300,17 @@ export const App: React.FC = () => {
   };
 
   const handleReportAdded = (newReport: LabReport) => {
-    // 1. Update Reports List (displays immediately in Recent Diagnostic Reports)
-    setReports((prev) => [newReport, ...prev]);
+    // 1. Ensure valid ID and place at the very top of Recent Diagnostic Reports
+    const reportWithId: LabReport = {
+      ...newReport,
+      id: newReport.id || `rep-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+    };
+
+    setReports((prev) => [reportWithId, ...prev.filter((r) => r.id !== reportWithId.id)]);
+    showToast(`✅ "${newReport.title}" synced to Dashboard & Patient Records!`);
 
     // 2. Dynamically Update Vitals Grid
-    setVitals((prevVitals) => {
+    setVitals((prevVitals: VitalMetric[]) => {
       let updated = [...prevVitals];
 
       newReport.keyValues.forEach((kv) => {
@@ -301,7 +417,7 @@ export const App: React.FC = () => {
     });
 
     // 3. Dynamically Update Patient Chronic Conditions
-    setPatient((prevPatient) => {
+    setPatient((prevPatient: PatientProfile) => {
       const conditions = [...prevPatient.chronicConditions];
       const titleLower = newReport.title.toLowerCase();
 
@@ -392,7 +508,7 @@ export const App: React.FC = () => {
     });
 
     if (extractedSugar || extractedCholesterol || extractedLdl) {
-      setHealthTrends((prevTrends) => {
+      setHealthTrends((prevTrends: HealthTrendPoint[]) => {
         const last = prevTrends[prevTrends.length - 1] || mockHealthTrends[mockHealthTrends.length - 1];
         const newPoint: HealthTrendPoint = {
           date: new Date().toISOString().slice(0, 7),
@@ -548,12 +664,26 @@ export const App: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                {reports.slice(0, 4).map((r) => (
-                  <div key={r.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white hover:border-sky-300 transition-all shadow-2xs">
+                {reports.slice(0, 6).map((r, idx) => (
+                  <div
+                    key={r.id || `rep-${idx}`}
+                    className={`p-4 rounded-xl border transition-all shadow-2xs ${
+                      idx === 0
+                        ? 'border-emerald-300 bg-emerald-50/40 ring-2 ring-emerald-100 hover:border-emerald-400'
+                        : 'border-slate-200 bg-slate-50/60 hover:bg-white hover:border-sky-300'
+                    }`}
+                  >
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800">
-                        {r.category}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800">
+                          {r.category}
+                        </span>
+                        {idx === 0 && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            NEW • LIVE SYNC
+                          </span>
+                        )}
+                      </div>
                       <span className="text-xs text-slate-400 font-medium">{r.date}</span>
                     </div>
                     <h3 className="font-heading font-bold text-slate-900 text-sm mt-1.5">{r.title}</h3>
@@ -562,7 +692,7 @@ export const App: React.FC = () => {
                     {/* Compact Biomarker Chips */}
                     {r.keyValues && r.keyValues.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mt-2.5 pt-2 border-t border-slate-200/60">
-                        {r.keyValues.slice(0, 3).map((kv, i) => (
+                        {r.keyValues.slice(0, 4).map((kv, i) => (
                           <span
                             key={i}
                             className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
