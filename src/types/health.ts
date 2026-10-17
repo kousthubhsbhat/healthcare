@@ -42,6 +42,7 @@ export interface LabReport {
   id: string;
   title: string;
   date: string;
+  patientName?: string;
   category: 'Blood Work' | 'Cardiology' | 'Radiology' | 'Prescription' | 'Endocrinology';
   doctor: string;
   facility: string;
@@ -56,6 +57,15 @@ export interface LabReport {
     isAbnormal: boolean;
   }[];
   downloadUrl?: string;
+  securityCheck?: {
+    sha256Hash: string;
+    digitalSignature: string;
+    ndhmVaultVerified: boolean;
+    doctorLicenseNo: string;
+    tamperCheckStatus: 'Verified Tamper-Proof' | 'Pending Audit';
+    consentArtifactId: string;
+    timestamp: string;
+  };
 }
 
 export interface AccessLog {

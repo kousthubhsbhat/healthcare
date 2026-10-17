@@ -600,7 +600,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <div className="flex items-center gap-2.5">
                       <Mail className="w-4 h-4 text-sky-600" />
                       <span className="font-semibold text-slate-800">
-                        {currentActiveAccount.googleEmail || 'rajesh.kumar@gmail.com'}
+                        {currentActiveAccount.googleEmail || 'priya.sharma@gmail.com'}
                       </span>
                     </div>
                     <span className="text-[10px] text-slate-400">Authenticated Token Active</span>
@@ -615,9 +615,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   {/* Quick Google Profiles */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     {[
-                      { email: 'rajesh.kumar@gmail.com', name: 'Rajesh V. Kumar (Primary)' },
-                      { email: 'sunita.kumar84@gmail.com', name: 'Sunita Kumar' },
-                      { email: 'dr.rajesh.health@gmail.com', name: 'Dr. Rajesh (Clinical)' },
+                      { email: 'priya.sharma@gmail.com', name: 'Priya S. Sharma (Verified)' },
+                      { email: 'kousthubh.bhat@gmail.com', name: 'Kousthubh S. Bhat' },
+                      { email: 'dr.arvind.cardio@gmail.com', name: 'Dr. Arvind Kumar, MD' },
                     ].map((g, idx) => (
                       <button
                         key={idx}

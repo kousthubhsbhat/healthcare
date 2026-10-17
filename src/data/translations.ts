@@ -86,7 +86,7 @@ export const translations: Record<LanguageCode, TranslationStrings> = {
     dropReportFiles: 'Drag & drop lab reports or prescriptions (PDF, PNG, JPG)',
     orBrowse: 'or click to browse files',
     capturePhoto: 'Snap Photo with Camera',
-    audioSpeechText: 'Hello Rajesh. Here is your medical summary: Your blood group is B Positive. You have a critical allergy to Penicillin. You have 3 active medications: Metformin, Telmisartan, and Rosuvastatin. Metformin is low in stock and requires a refill in 3 days. Your blood pressure has improved to 128 over 82.',
+    audioSpeechText: 'Hello. Here is your verified medical summary: Your blood group is B Positive. You have a critical allergy to Penicillin. You have active medications monitored and verified by your attending physician. Your blood pressure has improved to 128 over 82.',
   },
   hi: {
     appTitle: 'पल्सहेल्थ (PulseHealth)',

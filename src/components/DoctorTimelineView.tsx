@@ -98,6 +98,15 @@ export const DoctorTimelineView: React.FC<DoctorTimelineViewProps> = ({
                   </div>
 
                   <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-1">
+                    {report.patientName && (
+                      <>
+                        <span className="flex items-center gap-1 font-semibold text-sky-800 bg-sky-50 px-2 py-0.5 rounded border border-sky-100">
+                          <User className="w-3.5 h-3.5 text-sky-600" />
+                          Patient: {report.patientName}
+                        </span>
+                        <span>•</span>
+                      </>
+                    )}
                     <span className="flex items-center gap-1 font-semibold text-slate-600">
                       <Calendar className="w-3.5 h-3.5 text-slate-400" />
                       {report.date}
@@ -112,6 +121,14 @@ export const DoctorTimelineView: React.FC<DoctorTimelineViewProps> = ({
                       <User className="w-3.5 h-3.5 text-slate-400" />
                       {report.doctor}
                     </span>
+                    {report.securityCheck && (
+                      <>
+                        <span>•</span>
+                        <span className="text-[10px] bg-slate-900 text-emerald-400 font-mono px-2 py-0.5 rounded flex items-center gap-1">
+                          🔒 {report.securityCheck.tamperCheckStatus}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
 

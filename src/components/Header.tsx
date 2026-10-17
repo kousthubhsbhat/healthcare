@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, ShieldAlert, Stethoscope, User, Volume2, VolumeX, Globe, Settings } from 'lucide-react';
+import { Activity, ShieldAlert, Stethoscope, User, Volume2, VolumeX, Globe, Settings, KeyRound, LogIn, CheckCircle2 } from 'lucide-react';
 import { LanguageCode } from '../types/health';
 import { translations } from '../data/translations';
 
@@ -13,6 +13,9 @@ interface HeaderProps {
   patientName: string;
   bloodGroup: string;
   onOpenSettings: () => void;
+  onOpenSignIn?: () => void;
+  isSignedIn?: boolean;
+  signedInUser?: string;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -25,6 +28,9 @@ export const Header: React.FC<HeaderProps> = ({
   patientName,
   bloodGroup,
   onOpenSettings,
+  onOpenSignIn,
+  isSignedIn = true,
+  signedInUser,
 }) => {
   const t = translations[language];
 
@@ -153,6 +159,16 @@ export const Header: React.FC<HeaderProps> = ({
                 </select>
               </div>
             </div>
+
+            {/* Sign In Options Button */}
+            <button
+              onClick={onOpenSignIn || onOpenSettings}
+              title="Sign In Options (Google, Mobile OTP, ABHA ID)"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 transition-all shadow-2xs"
+            >
+              <KeyRound className="w-4 h-4 text-sky-600" />
+              <span className="hidden sm:inline">{signedInUser ? signedInUser.split(' ')[0] : 'Sign In'}</span>
+            </button>
 
             {/* Settings & Account Management Button */}
             <button
