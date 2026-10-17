@@ -120,9 +120,14 @@ async def process_report_with_vision_llm(
 
     # 4. Update Report Record
     summary = extraction.get("plain_language_summary", {}).get(request.language) or extraction.get("plain_language_summary", {}).get("en", "")
+    extracted_title = extraction.get("title") or report.get("title")
+    extracted_category = extraction.get("category") or report.get("category")
+
     await supabase_service.update_report(
         report_id=report_id,
         update_data={
+            "title": extracted_title,
+            "category": extracted_category,
             "summary": summary,
             "status": "Flagged" if len(contraindication_alerts) > 0 or abnormal_count > 0 else "Verified",
             "keyValues": [b.model_dump() for b in evaluated_biomarkers],

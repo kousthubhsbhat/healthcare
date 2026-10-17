@@ -85,6 +85,46 @@ class ClinicalRuleEngine:
                         clinical_alert = f"Elevated Serum Creatinine: {numeric_val} mg/dL (Normal 0.7 - 1.3 mg/dL)."
                         alerts.append(clinical_alert)
 
+                # 6. Thyroid Stimulating Hormone (TSH)
+                elif 'tsh' in name_lower or 'thyroid' in name_lower:
+                    if numeric_val > 4.5:
+                        is_abnormal = True
+                        clinical_alert = f"Elevated TSH: {numeric_val} uIU/mL exceeds normal upper limit (0.4 - 4.5 uIU/mL)."
+                    elif numeric_val < 0.4:
+                        is_abnormal = True
+                        clinical_alert = f"Low TSH: {numeric_val} uIU/mL is below normal threshold (0.4 - 4.5 uIU/mL)."
+
+            # General reference interval evaluation for any lab biomarker
+            if not is_abnormal and numeric_val is not None and bm.reference:
+                ref_str = bm.reference.lower()
+                range_match = re.search(r'([0-9]+(?:\.[0-9]+)?)\s*(?:-|to)\s*([0-9]+(?:\.[0-9]+)?)', ref_str)
+                if range_match:
+                    min_ref = float(range_match.group(1))
+                    max_ref = float(range_match.group(2))
+                    if numeric_val < min_ref:
+                        is_abnormal = True
+                        clinical_alert = f"Low: {bm.name} ({numeric_val}) is below reference interval ({bm.reference})."
+                    elif numeric_val > max_ref:
+                        is_abnormal = True
+                        clinical_alert = f"Elevated: {bm.name} ({numeric_val}) exceeds reference interval ({bm.reference})."
+                elif '<' in ref_str:
+                    lt_match = re.search(r'<\s*([0-9]+(?:\.[0-9]+)?)', ref_str)
+                    if lt_match and numeric_val > float(lt_match.group(1)):
+                        is_abnormal = True
+                        clinical_alert = f"Elevated: {bm.name} ({numeric_val}) exceeds upper reference limit ({bm.reference})."
+                elif '>' in ref_str:
+                    gt_match = re.search(r'>\s*([0-9]+(?:\.[0-9]+)?)', ref_str)
+                    if gt_match and numeric_val < float(gt_match.group(1)):
+                        is_abnormal = True
+                        clinical_alert = f"Low: {bm.name} ({numeric_val}) is below recommended threshold ({bm.reference})."
+
+            # Check value text for explicit flags (HIGH, LOW, ABNORMAL, etc.)
+            if not is_abnormal:
+                val_lower = bm.value.lower()
+                if any(w in val_lower for w in ['high', 'low', 'abnormal', 'elevated', 'critical', 'positive']):
+                    is_abnormal = True
+                    clinical_alert = f"Flagged finding: {bm.name} indicated as {bm.value}."
+
             evaluated_biomarkers.append(
                 BiomarkerValue(
                     name=bm.name,

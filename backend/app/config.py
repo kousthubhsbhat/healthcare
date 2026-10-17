@@ -16,7 +16,7 @@ class Settings(BaseSettings):
 
     # Google Gemini Vision LLM Configuration
     GEMINI_API_KEY: Optional[str] = os.getenv("GEMINI_API_KEY", None)
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
 
     # Optional OpenAI Configuration
     OPENAI_API_KEY: Optional[str] = os.getenv("OPENAI_API_KEY", None)
@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     TOKEN_EXPIRATION_HOURS: int = 24
 
     class Config:
-        env_file = ".env"
+        env_file = ("backend/.env", ".env")
         extra = "allow"
 
 settings = Settings()
